@@ -1,0 +1,116 @@
+# devplay Configuration
+# Copy this file to devplay.config.yaml and customize for your project.
+
+# ── Project Metadata ──────────────────────────────────────────────────
+project:
+  name: "My Awesome Tool"
+  description: "A short, compelling value proposition for your project."
+  repo: "https://github.com/your-org/your-repo"
+  website: ""
+  version: "1.0.0"
+
+# ── Playground Settings ───────────────────────────────────────────────
+playground:
+  # Theme: dark | light | auto
+  theme: "dark"
+  # Title shown in the playground browser tab
+  title: "Interactive Playground"
+  # Languages enabled for code execution (js is always available)
+  languages:
+    - "javascript"
+    - "typescript"
+  # Base URL for API playground requests (OpenAPI)
+  api_base_url: ""
+  # Output directory for the generated playground static site
+  output_dir: ".devplay/playground"
+
+# ── README Generator (CRO Framework) ─────────────────────────────────
+readme:
+  # Enable conversion-optimized README generation
+  cro_enabled: true
+  # Output path for generated README
+  output: "README.md"
+  # Format: github | gitlab
+  format: "github"
+
+  # Hero section
+  hero:
+    tagline: "One line that explains your value proposition."
+    badges:
+      - type: "build"
+        status: "passing"
+      - type: "version"
+      - type: "license"
+      - type: "downloads"
+
+  # Problem-solution narrative
+  problem: |
+    Describe the specific pain point your tool solves.
+    Use metrics and concrete examples.
+  solution: |
+    Explain how your tool solves the problem.
+    Include key differentiators and performance claims.
+
+  # Quick start section
+  quick_start:
+    install_command: "npm install -g my-awesome-tool"
+    first_run: "my-awesome-tool init"
+
+  # Feature matrix
+  features:
+    - name: "Feature One"
+      description: "What it does"
+      status: "stable"
+    - name: "Feature Two"
+      description: "What it does"
+      status: "beta"
+
+  # Performance metrics (optional)
+  metrics:
+    - label: "Build Speed"
+      value: "10x faster"
+    - label: "Bundle Size"
+      value: "< 50KB"
+
+# ── Call-to-Action Blocks ─────────────────────────────────────────────
+cta:
+  # Developer installation path
+  install:
+    command: "npm install -g my-awesome-tool"
+    label: "Get Started in 30 Seconds"
+
+  # Enterprise / consulting path
+  enterprise:
+    enabled: true
+    url: "https://calendly.com/your-team/discovery"
+    label: "Book Enterprise Demo"
+    description: "Custom integration, SLA support, and dedicated onboarding."
+
+# ── Asset Generation ──────────────────────────────────────────────────
+assets:
+  output_dir: "assets"
+
+  # Architecture diagrams
+  diagrams:
+    enabled: true
+    # Format: mermaid | svg | png | all
+    format: "all"
+    # Auto-detect architecture from code structure
+    auto_detect: true
+
+  # Social media cards
+  social_cards:
+    enabled: true
+    # Theme: dark | light
+    theme: "dark"
+    # Sizes to generate
+    sizes:
+      - name: "og"
+        width: 1200
+        height: 630
+      - name: "twitter"
+        width: 1200
+        height: 675
+      - name: "github"
+        width: 800
+        height: 400
