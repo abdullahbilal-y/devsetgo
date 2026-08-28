@@ -52,8 +52,13 @@ export function prepareSnippetsForExecution(snippets: CodeSnippet[]): CompiledSn
 
       // Auto-invoke top-level function if defined and not already invoked
       const funcMatch = code.match(/function\s+(\w+)\s*\(/);
-      if (funcMatch && !code.includes(`${funcMatch[1]}()`) && !code.includes(`${funcMatch[1]}(`)) {
-        code = `${code.trim()}\n\n// Auto-run demo:\n${funcMatch[1]}();`;
+      if (funcMatch) {
+        const fnName = funcMatch[1];
+        const afterDeclaration = code.slice(funcMatch.index! + funcMatch[0].length);
+        const isCalled = afterDeclaration.includes(`${fnName}(`);
+        if (!isCalled) {
+          code = `${code.trim()}\n\n// Run the demo:\n${fnName}();`;
+        }
       }
 
       // Wrap standalone expressions to capture output
