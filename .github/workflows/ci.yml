@@ -42,6 +42,9 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout
@@ -60,7 +63,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Only publish if the package.json version has changed
+      # Check if version changed
       - name: Check if version changed
         id: version_check
         run: |
@@ -76,6 +79,6 @@ jobs:
 
       - name: Publish to npm
         if: steps.version_check.outputs.changed == 'true'
-        run: npm publish --access public
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
