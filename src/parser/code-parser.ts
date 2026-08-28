@@ -127,9 +127,21 @@ export async function parseCodeFile(filePath: string): Promise<CodeSnippet[]> {
   PLAYGROUND_ANNOTATION.lastIndex = 0;
 
   while ((match = PLAYGROUND_ANNOTATION.exec(content)) !== null) {
+    // Verify it's a real comment block (starts with /** at line boundary, not inside a regex/string literal)
+    const matchIndex = match.index;
+    const charBefore = matchIndex > 0 ? content[matchIndex - 1] : '\n';
+    if (charBefore !== '\n' && charBefore !== '\r' && charBefore !== ' ' && charBefore !== '\t') {
+      continue;
+    }
+
     const metadata = parsePlaygroundAnnotation(match[1]);
     const annotationEnd = match.index + match[0].length;
     const { code, lineRange } = extractAnnotatedBlock(content, annotationEnd);
+
+    // If code is empty or just internal regex, skip
+    if (!code || code.startsWith('const PLAYGROUND_ANNOTATION') || code.length < 5) {
+      continue;
+    }
 
     // Extract the name from the code block
     const nameMatch = code.match(/(?:function|class|const|let|var)\s+(\w+)/);

@@ -210,6 +210,6 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ### Built With
 
-![node](https://img.shields.io/badge/node--339933?style=flat-square&logo=nodedotjs&logoColor=white) ![typescript](https://img.shields.io/badge/typescript--3178c6?style=flat-square&logo=typescript&logoColor=white)
+![typescript](https://img.shields.io/badge/typescript--3178c6?style=flat-square&logo=typescript&logoColor=white) ![node](https://img.shields.io/badge/node--339933?style=flat-square&logo=nodedotjs&logoColor=white)
 
 </div>

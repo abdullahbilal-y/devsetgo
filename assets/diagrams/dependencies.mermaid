@@ -28,8 +28,8 @@ graph TD
         devsetgo --> quickjs_emscripten
         sharp["sharp"]:::prodDep
         devsetgo --> sharp
-        yaml["yaml"]:::prodDep
-        devsetgo --> yaml
+        typescript["typescript"]:::prodDep
+        devsetgo --> typescript
     end
     subgraph dev["Development"]
         types_node["@types/node"]:::devDep
@@ -38,8 +38,6 @@ graph TD
         devsetgo -.-> tsup
         tsx["tsx"]:::devDep
         devsetgo -.-> tsx
-        typescript["typescript"]:::devDep
-        devsetgo -.-> typescript
         vitest["vitest"]:::devDep
         devsetgo -.-> vitest
     end

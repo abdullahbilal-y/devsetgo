@@ -74,26 +74,25 @@ export function prepareSnippetsForExecution(snippets: CodeSnippet[]): CompiledSn
     });
 }
 
+import ts from 'typescript';
+
 /**
- * Strip basic TypeScript type annotations for QuickJS execution.
- * This is a simplified transform — not a full TS compiler.
+ * Strip TypeScript type annotations using the official TypeScript transpileModule API.
+ * This guarantees 100% syntactical accuracy without corrupting object properties or colons.
  */
 function stripTypeAnnotations(code: string): string {
-  return code
-    // Remove type imports
-    .replace(/import\s+type\s+\{[^}]*\}\s+from\s+['"][^'"]*['"];?\s*/g, '')
-    // Remove interface/type declarations
-    .replace(/(?:export\s+)?(?:interface|type)\s+\w+[\s\S]*?(?=\n(?:export|function|class|const|let|var|import|\n))/g, '')
-    // Remove parameter type annotations
-    .replace(/:\s*\w+(?:\[\])?(?:\s*\|[^,)=]*)?/g, '')
-    // Remove return type annotations
-    .replace(/\)\s*:\s*\w+(?:\[\])?(?:\s*\|[^{]*)?/g, ')')
-    // Remove generic type parameters
-    .replace(/<\w+(?:\s+extends\s+\w+)?>/g, '')
-    // Remove 'as' type assertions
-    .replace(/\s+as\s+\w+/g, '')
-    // Clean up any remaining artifacts
-    .replace(/\n{3,}/g, '\n\n');
+  try {
+    const result = ts.transpileModule(code, {
+      compilerOptions: {
+        module: ts.ModuleKind.ESNext,
+        target: ts.ScriptTarget.ES2022,
+        removeComments: false,
+      },
+    });
+    return result.outputText.trim();
+  } catch {
+    return code;
+  }
 }
 
 /**
