@@ -139,27 +139,48 @@ async function runCode() {
     logFn.dispose();
     consoleObj.dispose();
 
+    // Pre-process code for eval: strip export keywords
+    let evalCodeStr = code
+      .replace(/^export\s+default\s+/gm, '')
+      .replace(/^export\s+/gm, '');
+
+    // Auto-invoke top-level function if defined and not already invoked
+    const funcMatch = evalCodeStr.match(/function\\s+([a-zA-Z0-9_$]+)\\s*\\(/);
+    if (funcMatch) {
+      const fnName = funcMatch[1];
+      if (!evalCodeStr.includes(fnName + '()') && !evalCodeStr.includes(fnName + '(')) {
+        evalCodeStr += '\\n\\n' + fnName + '();';
+      }
+    }
+
     // Execute
-    const result = vm.evalCode(code);
+    const result = vm.evalCode(evalCodeStr);
     const duration = performance.now() - startTime;
 
     clearOutput();
 
     if (result.error) {
-      const errorMsg = vm.dump(result.error);
+      const errObj = vm.dump(result.error);
       result.error.dispose();
-      appendOutput(String(errorMsg), 'error');
+      let errorText = 'Runtime Error';
+      if (typeof errObj === 'string') {
+        errorText = errObj;
+      } else if (errObj && typeof errObj === 'object') {
+        errorText = (errObj.name || 'Error') + ': ' + (errObj.message || JSON.stringify(errObj));
+      }
+      appendOutput(errorText, 'error');
     } else {
       // Show captured output
       for (const line of output) {
         appendOutput(line, 'success');
       }
 
-      // Show return value
+      // Show return value if non-empty
       const val = vm.dump(result.value);
       result.value.dispose();
       if (val !== undefined && output.length === 0) {
-        appendOutput(JSON.stringify(val, null, 2), 'success');
+        const formatted = typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val);
+        appendOutput(formatted, 'success');
       }
     }
 

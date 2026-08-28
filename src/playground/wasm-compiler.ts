@@ -47,8 +47,11 @@ export function prepareSnippetsForExecution(snippets: CodeSnippet[]): CompiledSn
         code = stripTypeAnnotations(code);
       }
 
+      // Strip export keyword so snippets are standard runnable JS in browser
+      code = code.replace(/^export\s+default\s+/gm, '').replace(/^export\s+/gm, '');
+
       // Auto-invoke top-level function if defined and not already invoked
-      const funcMatch = code.match(/(?:export\s+)?function\s+(\w+)\s*\(/);
+      const funcMatch = code.match(/function\s+(\w+)\s*\(/);
       if (funcMatch && !code.includes(`${funcMatch[1]}()`) && !code.includes(`${funcMatch[1]}(`)) {
         code = `${code.trim()}\n\n// Auto-run demo:\n${funcMatch[1]}();`;
       }
