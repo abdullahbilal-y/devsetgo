@@ -116,8 +116,15 @@ async function runCode() {
     // Set up console
     const logFn = vm.newFunction('log', (...args) => {
       const parts = args.map(arg => {
-        if (typeof vm.dump === 'function') return JSON.stringify(vm.dump(arg));
-        return vm.getString(arg);
+        try {
+          const val = vm.dump(arg);
+          if (typeof val === 'string') return val;
+          if (val === undefined) return 'undefined';
+          if (val === null) return 'null';
+          return typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val);
+        } catch {
+          return vm.getString(arg);
+        }
       });
       output.push(parts.join(' '));
     });

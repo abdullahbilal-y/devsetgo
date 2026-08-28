@@ -49,7 +49,7 @@ devsetgo solves this by compiling your code into WebAssembly browser modules and
 ```mermaid
 graph TB
     assets["assets<br/><sub>generateAssets</sub>"]
-    src["src"]
+    src["src<br/><sub>helloDevSetGo, calculateConversionROI, generateShieldsBadge...</sub>"]
     commands["commands"]
     parser["parser<br/><sub>parseProject</sub>"]
     playground["playground<br/><sub>generatePlayground</sub>"]

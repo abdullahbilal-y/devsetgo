@@ -32,14 +32,25 @@ export interface CompiledSnippet {
  * client-side by the QuickJS WASM runtime loaded in the browser.
  */
 export function prepareSnippetsForExecution(snippets: CodeSnippet[]): CompiledSnippet[] {
-  return snippets
-    .filter(s => s.language === 'javascript' || s.language === 'typescript')
+  const hasAnnotated = snippets.some(s => s.runnable);
+
+  const targetSnippets = hasAnnotated
+    ? snippets.filter(s => s.runnable && (s.language === 'javascript' || s.language === 'typescript'))
+    : snippets.filter(s => s.language === 'javascript' || s.language === 'typescript');
+
+  return targetSnippets
     .map(snippet => {
       let code = snippet.code;
 
       // Strip TypeScript type annotations for JS execution
       if (snippet.language === 'typescript') {
         code = stripTypeAnnotations(code);
+      }
+
+      // Auto-invoke top-level function if defined and not already invoked
+      const funcMatch = code.match(/(?:export\s+)?function\s+(\w+)\s*\(/);
+      if (funcMatch && !code.includes(`${funcMatch[1]}()`) && !code.includes(`${funcMatch[1]}(`)) {
+        code = `${code.trim()}\n\n// Auto-run demo:\n${funcMatch[1]}();`;
       }
 
       // Wrap standalone expressions to capture output
