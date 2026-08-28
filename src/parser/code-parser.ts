@@ -150,39 +150,72 @@ export async function parseCodeFile(filePath: string): Promise<CodeSnippet[]> {
     });
   }
 
-  // Strategy 2: If no @playground annotations, extract exported functions with JSDoc
-  if (snippets.length === 0) {
-    JSDOC_REGEX.lastIndex = 0;
+  // Strategy 2: If no @playground annotations, use a safe line-based scan for
+  // exported functions with JSDoc. We deliberately avoid nested regex patterns
+  // to prevent catastrophic backtracking on large template/style files.
+  const hasJSDoc = content.includes('/**');
 
-    while ((match = JSDOC_REGEX.exec(content)) !== null) {
-      const jsdocContent = match[1];
-      const name = match[2];
-      const description = extractDescription(jsdocContent);
+  if (snippets.length === 0 && hasJSDoc) {
+    const lines = content.split('\n');
+    let jsdocStart = -1;
+    let jsdocLines: string[] = [];
 
-      // Find the full function body
-      const funcStart = match.index + match[0].indexOf(name);
-      const afterName = content.slice(funcStart);
-      const bodyMatch = afterName.match(
-        /\w+[\s\S]*?(\{(?:[^{}]*|\{(?:[^{}]*|\{[^{}]*\})*\})*\})/,
-      );
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
 
-      const code = bodyMatch ? afterName.slice(0, bodyMatch[0].length) : match[0];
-      const startLine = content.slice(0, match.index).split('\n').length;
+      // Start of JSDoc block
+      if (trimmed === '/**' || trimmed.startsWith('/** ')) {
+        jsdocStart = i;
+        jsdocLines = [line];
+        continue;
+      }
 
-      snippets.push({
-        id: `${basename(filePath, extname(filePath))}_${name}`,
-        title: name,
-        description,
-        code,
-        language,
-        sourceFile: filePath,
-        lineRange: {
-          start: startLine,
-          end: startLine + code.split('\n').length,
-        },
-        runnable: false, // Not explicitly marked as playground-runnable
-        category: 'exported',
-      });
+      // Inside JSDoc block
+      if (jsdocStart >= 0 && trimmed.startsWith('*')) {
+        jsdocLines.push(line);
+        if (trimmed === '*/') {
+          // End of JSDoc — check if next non-empty line is an export
+          let nextLine = '';
+          let nextIdx = i + 1;
+          while (nextIdx < lines.length && lines[nextIdx].trim() === '') nextIdx++;
+          if (nextIdx < lines.length) nextLine = lines[nextIdx];
+
+          const exportMatch = nextLine.match(
+            /^export\s+(?:default\s+)?(?:async\s+)?(?:function|class|const)\s+(\w+)/
+          );
+
+          if (exportMatch) {
+            const name = exportMatch[1];
+            const description = extractDescription(jsdocLines.join('\n'));
+            // Grab just the next 15 lines as the "code" preview
+            const previewLines = lines.slice(nextIdx, nextIdx + 15);
+            const code = previewLines.join('\n').trim();
+
+            snippets.push({
+              id: `${basename(filePath, extname(filePath))}_${name}`,
+              title: name,
+              description,
+              code,
+              language,
+              sourceFile: filePath,
+              lineRange: { start: nextIdx + 1, end: nextIdx + 15 },
+              runnable: false,
+              category: 'exported',
+            });
+          }
+
+          jsdocStart = -1;
+          jsdocLines = [];
+        }
+        continue;
+      }
+
+      // Non-JSDoc line resets the block
+      if (jsdocStart >= 0 && !trimmed.startsWith('*')) {
+        jsdocStart = -1;
+        jsdocLines = [];
+      }
     }
   }
 

@@ -41,6 +41,7 @@ const IGNORE_PATTERNS = [
   '.devplay/**',
   '.git/**',
   'coverage/**',
+  'tests/**',
   '*.min.js',
   '*.bundle.js',
 ];

@@ -1,0 +1,111 @@
+# Contributing to devsetgo
+
+Thank you for your interest in contributing to **devsetgo**! 🎉
+
+## Getting Started
+
+### Prerequisites
+
+- **Node.js** 20 or higher
+- **npm** 9 or higher
+
+### Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/abdullahbilal-y/devsetgo.git
+cd devsetgo
+
+# Install dependencies
+npm install
+
+# Build the CLI
+npm run build
+
+# Run tests
+npm test
+
+# Type-check
+npm run typecheck
+```
+
+### Local Development
+
+For live-reloading during development:
+
+```bash
+npm run dev -- --help
+npm run dev -- init
+npm run dev -- build
+```
+
+## Project Structure
+
+```
+src/
+├── cli.ts              # CLI entry point (Commander)
+├── index.ts            # Public API exports
+├── commands/           # CLI subcommands
+├── parser/             # Source parsers (code, OpenAPI, Markdown)
+├── readme/             # CRO README generator
+├── playground/         # WASM playground builder
+├── assets/             # Diagram & social card generators
+└── utils/              # Shared utilities (config, logger, fs)
+
+tests/
+├── parser/             # Parser unit tests
+├── readme/             # README generator tests
+├── playground/         # Playground tests
+└── fixtures/           # Test data files
+```
+
+## Submitting Changes
+
+1. **Fork** the repository and create a feature branch:
+   ```bash
+   git checkout -b feature/my-feature
+   ```
+
+2. **Write tests** for your changes in the appropriate `tests/` directory.
+
+3. **Ensure all checks pass**:
+   ```bash
+   npm run typecheck   # TypeScript type-check
+   npm test            # Run test suite
+   npm run build       # Verify build succeeds
+   ```
+
+4. **Commit** with a conventional commit message:
+   ```
+   feat: add Python WASM execution via Pyodide
+   fix: handle empty OpenAPI paths gracefully
+   docs: improve @playground annotation examples
+   test: add template engine tests
+   ```
+
+5. **Open a Pull Request** against `main` with a clear description of what changed and why.
+
+## Code Style
+
+- TypeScript strict mode is enabled — no `any` without a comment explaining why
+- Keep functions focused and under ~100 lines
+- Add JSDoc to all exported functions and types
+- Use `log.xxx()` from `src/utils/logger.ts` (not `console.log`) in CLI code
+
+## Reporting Bugs
+
+Open a GitHub Issue with:
+- Your Node.js and npm versions (`node -v`, `npm -v`)
+- The command you ran and the full error output
+- Your `devsetgo.config.yaml` (if relevant, redact secrets)
+
+## Feature Requests
+
+Open a GitHub Discussion or Issue with:
+- A clear use case description
+- What you expected vs. what happened (or what's missing)
+- Any references to similar tools that do what you want
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
