@@ -206,13 +206,23 @@ ${quick_start.first_run}
 }
 
 function generateInteractiveDemoSection(config: DevSetGoConfig): string {
+  let playgroundUrl = config.playground.url;
+  if (!playgroundUrl) {
+    const ghMatch = config.project.repo.match(/github\.com\/([^/]+)\/([^/]+)/);
+    if (ghMatch) {
+      playgroundUrl = `https://${ghMatch[1]}.github.io/${ghMatch[2]}/`;
+    } else {
+      playgroundUrl = `${config.project.repo}#playground`;
+    }
+  }
+
   return `## 🎮 Interactive Playground
 
 Try ${config.project.name} directly in your browser — no installation required:
 
 <div align="center">
 
-**[▶ Launch Interactive Playground](${config.project.repo}#playground)**
+**[▶ Launch Interactive Playground](${playgroundUrl})**
 
 <sub>Runs entirely in your browser via WebAssembly. No data leaves your machine.</sub>
 

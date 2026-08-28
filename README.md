@@ -8,7 +8,7 @@
 [![npm version](https://img.shields.io/npm/v/devsetgo?style=for-the-badge&color=0969da)](https://www.npmjs.com/package/devsetgo)
 ![License](https://img.shields.io/github/license/abdullahbilal-y/devsetgo?style=for-the-badge&color=009688)
 [![Downloads](https://img.shields.io/npm/dm/devsetgo?style=for-the-badge&color=8957e5)](https://www.npmjs.com/package/devsetgo)
-[![Interactive Playground](https://img.shields.io/badge/%E2%96%B6%20-Live%20Playground-7c3aed?style=for-the-badge)](https://github.com/abdullahbilal-y/devsetgo#-interactive-playground)
+[![Interactive Playground](https://img.shields.io/badge/%E2%96%B6%20-Live%20Playground-7c3aed?style=for-the-badge)](https://abdullahbilal-y.github.io/devsetgo/)
 
 <br/>
 
@@ -48,7 +48,32 @@ devsetgo solves this by compiling your code into WebAssembly browser modules and
 
 ```mermaid
 graph TB
+    assets["assets<br/><sub>generateAssets</sub>"]
+    src["src"]
+    commands["commands"]
+    parser["parser<br/><sub>parseProject</sub>"]
+    playground["playground<br/><sub>generatePlayground</sub>"]
+    readme["readme<br/><sub>generateReadme</sub>"]
+    utils["utils"]
     root["root"]
+    assets --> parser
+    assets --> utils
+    src --> assets
+    src --> commands
+    src --> playground
+    src --> readme
+    src --> utils
+    commands --> assets
+    commands --> parser
+    commands --> utils
+    commands --> playground
+    commands --> readme
+    parser --> utils
+    playground --> parser
+    playground --> utils
+    readme --> parser
+    readme --> utils
+    utils --> parser
 ```
 
 
@@ -72,7 +97,7 @@ Try devsetgo directly in your browser — no installation required:
 
 <div align="center">
 
-**[▶ Launch Interactive Playground](https://github.com/abdullahbilal-y/devsetgo#playground)**
+**[▶ Launch Interactive Playground](https://abdullahbilal-y.github.io/devsetgo/)**
 
 <sub>Runs entirely in your browser via WebAssembly. No data leaves your machine.</sub>
 

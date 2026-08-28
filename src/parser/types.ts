@@ -26,6 +26,7 @@ export interface PlaygroundConfig {
   theme: 'dark' | 'light' | 'auto';
   title: string;
   languages: string[];
+  url?: string;
   api_base_url?: string;
   output_dir: string;
 }

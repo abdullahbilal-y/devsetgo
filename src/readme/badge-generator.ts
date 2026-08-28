@@ -57,9 +57,20 @@ export function generateBadgeStrip(config: DevSetGoConfig): string {
     if (md) badges.push(md);
   }
 
+  // Determine the playground URL
+  let playgroundUrl = config.playground.url;
+  if (!playgroundUrl) {
+    const ghMatch = project.repo.match(/github\.com\/([^/]+)\/([^/]+)/);
+    if (ghMatch) {
+      playgroundUrl = `https://${ghMatch[1]}.github.io/${ghMatch[2]}/`;
+    } else {
+      playgroundUrl = `${project.repo}#playground`;
+    }
+  }
+
   // Always add the playground badge if we have one
   badges.push(
-    `[![Interactive Playground](${shieldsBadge('▶ ', 'Live Playground', BADGE_COLORS.brand, { style: 'for-the-badge' })})](${project.repo}#-interactive-playground)`,
+    `[![Interactive Playground](${shieldsBadge('▶ ', 'Live Playground', BADGE_COLORS.brand, { style: 'for-the-badge' })})](${playgroundUrl})`,
   );
 
   return badges.join('\n');

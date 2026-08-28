@@ -1,0 +1,31 @@
+graph TB
+    classDef moduleStyle fill:#1e1e32,stroke:#7c3aed,stroke-width:2px,color:#e8e8f0
+    classDef rootStyle fill:#7c3aed,stroke:#a78bfa,stroke-width:2px,color:#ffffff
+
+    assets["📁 assets<br/><i>generateAssets</i>"]:::moduleStyle
+    src["📁 src"]:::moduleStyle
+    commands["📁 commands"]:::moduleStyle
+    parser["📁 parser<br/><i>parseProject</i>"]:::moduleStyle
+    playground["📁 playground<br/><i>generatePlayground</i>"]:::moduleStyle
+    readme["📁 readme<br/><i>generateReadme</i>"]:::moduleStyle
+    utils["📁 utils"]:::moduleStyle
+    root["📦 root"]:::rootStyle
+
+    assets --> parser
+    assets --> utils
+    src --> assets
+    src --> commands
+    src --> playground
+    src --> readme
+    src --> utils
+    commands --> assets
+    commands --> parser
+    commands --> utils
+    commands --> playground
+    commands --> readme
+    parser --> utils
+    playground --> parser
+    playground --> utils
+    readme --> parser
+    readme --> utils
+    utils --> parser

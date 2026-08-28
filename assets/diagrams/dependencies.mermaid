@@ -1,0 +1,45 @@
+graph TD
+    classDef prodDep fill:#22c55e,stroke:#4ade80,stroke-width:1px,color:#ffffff
+    classDef devDep fill:#6366f1,stroke:#818cf8,stroke-width:1px,color:#ffffff
+    classDef projectStyle fill:#7c3aed,stroke:#a78bfa,stroke-width:2px,color:#ffffff
+
+    devsetgo["devsetgo"]:::projectStyle
+
+    subgraph prod["Production"]
+        apidevtools_swagger_parser["@apidevtools/swagger-parser"]:::prodDep
+        devsetgo --> apidevtools_swagger_parser
+        inquirer_prompts["@inquirer/prompts"]:::prodDep
+        devsetgo --> inquirer_prompts
+        mermaid_js_mermaid_cli["@mermaid-js/mermaid-cli"]:::prodDep
+        devsetgo --> mermaid_js_mermaid_cli
+        commander["commander"]:::prodDep
+        devsetgo --> commander
+        glob["glob"]:::prodDep
+        devsetgo --> glob
+        gray_matter["gray-matter"]:::prodDep
+        devsetgo --> gray_matter
+        handlebars["handlebars"]:::prodDep
+        devsetgo --> handlebars
+        marked["marked"]:::prodDep
+        devsetgo --> marked
+        picocolors["picocolors"]:::prodDep
+        devsetgo --> picocolors
+        quickjs_emscripten["quickjs-emscripten"]:::prodDep
+        devsetgo --> quickjs_emscripten
+        sharp["sharp"]:::prodDep
+        devsetgo --> sharp
+        yaml["yaml"]:::prodDep
+        devsetgo --> yaml
+    end
+    subgraph dev["Development"]
+        types_node["@types/node"]:::devDep
+        devsetgo -.-> types_node
+        tsup["tsup"]:::devDep
+        devsetgo -.-> tsup
+        tsx["tsx"]:::devDep
+        devsetgo -.-> tsx
+        typescript["typescript"]:::devDep
+        devsetgo -.-> typescript
+        vitest["vitest"]:::devDep
+        devsetgo -.-> vitest
+    end

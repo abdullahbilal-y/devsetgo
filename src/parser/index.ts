@@ -79,7 +79,8 @@ async function detectModules(rootDir: string, codeFiles: string[]): Promise<Modu
   const dirMap = new Map<string, string[]>();
 
   // Group files by directory
-  for (const file of codeFiles) {
+  for (const rawFile of codeFiles) {
+    const file = rawFile.replace(/\\/g, '/');
     const parts = file.split('/');
     const dir = parts.length > 1 ? parts.slice(0, -1).join('/') : '.';
 
@@ -99,7 +100,7 @@ async function detectModules(rootDir: string, codeFiles: string[]): Promise<Modu
       f.endsWith('/__init__.py')
     );
 
-    if (hasIndex || files.length >= 3) {
+    if (hasIndex || files.length >= 2) {
       const indexFile = files.find(f =>
         f.endsWith('/index.ts') || f.endsWith('/index.js')
       );
@@ -113,8 +114,11 @@ async function detectModules(rootDir: string, codeFiles: string[]): Promise<Modu
         }
       }
 
+      // Name is the last folder segment, or the full path if deep
+      const name = dir === '.' ? 'root' : dir.replace(/^src\//, '');
+
       modules.push({
-        name: dir === '.' ? 'root' : dir.split('/').pop() || dir,
+        name,
         path: dir,
         exports,
         internalDependencies: [],

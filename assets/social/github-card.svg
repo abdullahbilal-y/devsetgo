@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0f" />
+      <stop offset="100%" style="stop-color:#12121a" />
+    </linearGradient>
+
+    <!-- Accent gradient -->
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#7c3aed" />
+      <stop offset="100%" style="stop-color:#a78bfa" />
+    </linearGradient>
+
+    <!-- Glow effect -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="20" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Subtle noise texture -->
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feBlend in="SourceGraphic" mode="multiply" result="noisy"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.05"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bgGrad)" rx="0"/>
+
+  <!-- Decorative gradient orbs -->
+  <circle cx="640" cy="80" r="200" fill="#7c3aed" opacity="0.06" filter="url(#glow)"/>
+  <circle cx="120" cy="340" r="160" fill="#a78bfa" opacity="0.04" filter="url(#glow)"/>
+
+  <!-- Top accent bar -->
+  <rect x="0" y="0" width="800" height="4" fill="url(#accentGrad)"/>
+
+  <!-- Grid pattern (subtle) -->
+  <line x1="48" y1="220.00000000000003" x2="752" y2="220.00000000000003" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- Logo icon -->
+  <rect x="48" y="48" width="36" height="36" rx="8" fill="url(#accentGrad)"/>
+  <text x="66" y="74" fill="white" font-family="Arial, sans-serif" font-size="20" font-weight="700" text-anchor="middle">▶</text>
+
+  <!-- Project Name -->
+  <text x="92" y="76" fill="#e8e8f0" font-family="Inter, Arial, sans-serif" font-size="40" font-weight="800" letter-spacing="-1">devsetgo</text>
+
+  <!-- Tagline -->
+  <text x="48" y="112" fill="#9898b0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="400">Convert source code into interactive browser playgrounds and CRO-optimized do...</text>
+
+  <!-- Description -->
+  <text x="48" y="140" fill="#9898b0" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="300" opacity="0.8">Interactive developer playground and documentation engine — converts source code, OpenAPI schemas...</text>
+
+  <!-- Metrics section -->
+  
+    <g transform="translate(48, 231.99999999999997)">
+      <text fill="#a78bfa" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">&lt; 2s</text>
+      <text y="36.4" fill="#9898b0" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="400">Playground Load</text>
+    </g>
+  
+    <g transform="translate(283, 231.99999999999997)">
+      <text fill="#a78bfa" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">&lt; 500ms</text>
+      <text y="36.4" fill="#9898b0" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="400">README Generation</text>
+    </g>
+  
+    <g transform="translate(518, 231.99999999999997)">
+      <text fill="#a78bfa" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="800">&lt; 3s</text>
+      <text y="36.4" fill="#9898b0" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="400">Asset Generation</text>
+    </g>
+  
+
+  <!-- Stats badges at bottom -->
+  <g transform="translate(48, 328)">
+    
+      <rect x="0" y="0" width="80" height="25.6" rx="4.8" fill="rgba(124,58,237,0.15)" stroke="#7c3aed" stroke-width="0.5"/>
+      <text x="40" y="17.6" fill="#a78bfa" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="600" text-anchor="middle">9 Features</text>
+    
+    
+      <rect x="88" y="0" width="80" height="25.6" rx="4.8" fill="rgba(34,197,94,0.12)" stroke="#22c55e" stroke-width="0.5"/>
+      <text x="128" y="17.6" fill="#4ade80" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="600" text-anchor="middle">56 Examples</text>
+    
+    
+  </g>
+
+  <!-- devsetgo branding -->
+  <text x="752" y="352" fill="#9898b0" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="500" text-anchor="end" opacity="0.5">Built with devsetgo</text>
+</svg>
