@@ -34,6 +34,14 @@
     "cro",
     "devsetgo"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abdullahbilal-y/devsetgo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/abdullahbilal-y/devsetgo/issues"
+  },
+  "homepage": "https://github.com/abdullahbilal-y/devsetgo#readme",
   "author": "Abdullah Bilal <abdullahbilal-y@github.com>",
   "license": "MIT",
   "dependencies": {
