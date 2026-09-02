@@ -1,7 +1,7 @@
 {
   "name": "devsetgo",
   "version": "2.0.0",
-  "description": "Interactive developer playground and documentation engine \u2014 converts source code, OpenAPI schemas, and Markdown into browser playgrounds and CRO-optimized docs.",
+  "description": "Interactive developer playground and documentation engine — converts source code, OpenAPI schemas, and Markdown into browser playgrounds and CRO-optimized docs.",
   "type": "module",
   "bin": {
     "devsetgo": "dist/cli.js"
@@ -60,12 +60,8 @@
   "license": "MIT",
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",
-    "@inquirer/prompts": "^7.5.0",
     "commander": "^13.1.0",
     "glob": "^11.0.0",
-    "gray-matter": "^4.0.3",
-    "handlebars": "^4.7.8",
-    "marked": "^15.0.0",
     "picocolors": "^1.1.0",
     "typescript": "^5.7.0",
     "yaml": "^2.7.0"

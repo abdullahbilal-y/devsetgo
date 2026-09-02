@@ -1,3 +1,4 @@
+<!-- devsetgo:generated -->
 <div align="center">
 
 # devsetgo
@@ -48,14 +49,14 @@ devsetgo solves this by compiling your code into WebAssembly browser modules and
 
 ```mermaid
 graph TB
+    root["root"]
     assets["assets<br/><sub>generateAssets</sub>"]
-    src["src<br/><sub>helloDevSetGo, calculateConversionROI, generateShieldsBadge...</sub>"]
+    src["src"]
     commands["commands"]
     parser["parser<br/><sub>parseProject</sub>"]
     playground["playground<br/><sub>generatePlayground</sub>"]
-    readme["readme<br/><sub>generateReadme</sub>"]
+    readme["readme<br/><sub>GENERATED_MARKER, ReadmeOverwriteError, GenerateReadmeOptions...</sub>"]
     utils["utils"]
-    root["root"]
     assets --> parser
     assets --> utils
     src --> assets
@@ -210,6 +211,6 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ### Built With
 
-![typescript](https://img.shields.io/badge/typescript--3178c6?style=flat-square&logo=typescript&logoColor=white) ![node](https://img.shields.io/badge/node--339933?style=flat-square&logo=nodedotjs&logoColor=white)
+![typescript](https://img.shields.io/badge/typescript--3178c6?style=flat-square&logo=typescript&logoColor=white) ![node](https://img.shields.io/badge/node--339933?style=flat-square&logo=nodedotjs&logoColor=white) ![typescript](https://img.shields.io/badge/typescript--3178c6?style=flat-square&logo=typescript&logoColor=white)
 
 </div>

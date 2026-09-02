@@ -113,6 +113,25 @@ describe('loadConfig', () => {
     expect(({} as Record<string, unknown>).polluted).toBeUndefined();
   });
 
+  it('does not let an override leak into later loadConfig calls', async () => {
+    // deepMerge copies nested values by reference when the source omits the
+    // key, so mutating a returned config used to rewrite the module-level
+    // defaults for every subsequent call in the same process.
+    const first = await loadConfig(workDir, {});
+    first.playground.output_dir = 'mutated-by-caller';
+
+    const second = await loadConfig(workDir, {});
+    expect(second.playground.output_dir).toBe('.devsetgo/playground');
+  });
+
+  it('returns an independent object on each call', async () => {
+    const a = await loadConfig(workDir, {});
+    const b = await loadConfig(workDir, {});
+
+    expect(a.playground).not.toBe(b.playground);
+    expect(a.assets.social_cards.sizes).not.toBe(b.assets.social_cards.sizes);
+  });
+
   it('auto-detects project name from package.json', async () => {
     await writeFile(
       join(workDir, 'package.json'),

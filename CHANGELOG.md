@@ -93,6 +93,18 @@ read the first entry below.
   in the same list was repo-relative. It also built a shell command by string
   concatenation; it now uses `execFile` with an argument array.
 
+- **Config defaults were shared mutable state.** `deepMerge` copies a nested
+  value by reference when the source config omits that key, so
+  `config.playground.output_dir = ...` (which every `--output` override does)
+  rewrote the module-level `DEFAULT_CONFIG` for the rest of the process. Any
+  program calling `loadConfig` more than once got the previous call's
+  overrides. The defaults are now cloned before merging.
+
+- **Four dependencies were declared but never imported** — `@inquirer/prompts`,
+  `handlebars`, `marked`, and `gray-matter`. Runtime dependencies are down from
+  13 to 6. (`init` is not interactive despite its docstring; it never used
+  a prompt library.)
+
 ### Added
 
 - **Execution timeout in the playground sandbox.** A snippet with an infinite
@@ -113,6 +125,21 @@ read the first entry below.
 
 - CI now runs on Node 20/22/24 plus Windows, checks formatting and lint, and
   verifies the published tarball contains `dist/` and no source.
+
+- **Multi-source QuickJS loading.** The playground previously imported the
+  sandbox from a single hardcoded `esm.sh` URL, so one provider outage took
+  every published playground offline with no message beyond a status dot. It
+  now tries three version-pinned CDNs in order, reports each failure in the
+  output pane, keeps the Run button disabled until the runtime is genuinely
+  ready, and honours a `playground.quickjs_sources` config key for
+  air-gapped or mirrored deployments.
+
+- **`startPlaygroundServer`** extracted from `serveCommand`, so the dev server
+  can be started on an ephemeral port and driven over a real socket in tests.
+
+- Test suites for `init` (previously 0% covered, 190 lines that write into the
+  user's working directory) and for the server over real HTTP. Coverage rose
+  from 56% to 80% of lines; the suite is 169 tests, up from 63.
 
 ### Security
 

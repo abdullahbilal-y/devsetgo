@@ -592,6 +592,16 @@ body {
   background: var(--success);
 }
 
+.statusbar__dot--error {
+  background: var(--color-error, #ef4444);
+  box-shadow: 0 0 6px var(--color-error, #ef4444);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }

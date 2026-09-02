@@ -24,10 +24,10 @@ export default defineConfig({
       thresholds: {
         // Ratcheted to just below current coverage: raise as suites grow,
         // never lower to make a red run go green.
-        lines: 55,
-        functions: 60,
-        branches: 70,
-        statements: 55,
+        lines: 78,
+        functions: 88,
+        branches: 73,
+        statements: 78,
       },
     },
   },

@@ -29,6 +29,12 @@ export interface PlaygroundConfig {
   url?: string;
   api_base_url?: string;
   output_dir: string;
+  /**
+   * Version-pinned URLs the playground tries, in order, to load the QuickJS
+   * WebAssembly runtime. Override to point at an internal mirror when public
+   * CDNs are unreachable. Empty or omitted uses the built-in defaults.
+   */
+  quickjs_sources?: string[];
 }
 
 export interface ReadmeConfig {

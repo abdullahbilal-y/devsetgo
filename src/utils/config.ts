@@ -46,6 +46,12 @@ const DEFAULT_CONFIG: DevSetGoConfig = {
     languages: ['javascript'],
     api_base_url: '',
     output_dir: '.devsetgo/playground',
+    // Multiple providers so one CDN outage does not take the playground down.
+    quickjs_sources: [
+      'https://esm.sh/quickjs-emscripten@0.31.0',
+      'https://cdn.jsdelivr.net/npm/quickjs-emscripten@0.31.0/+esm',
+      'https://unpkg.com/quickjs-emscripten@0.31.0?module',
+    ],
   },
   readme: {
     cro_enabled: true,
@@ -217,8 +223,14 @@ export async function loadConfig(
     log.debug('No config file found, using defaults');
   }
 
-  // 2. Merge: defaults ← file config
-  let config: DevSetGoConfig = deepMerge(DEFAULT_CONFIG, fileConfig);
+  // 2. Merge: defaults ← file config.
+  //
+  // The defaults are cloned first. deepMerge copies a nested value by
+  // reference when the source omits that key, so without this a later
+  // `config.playground.output_dir = ...` override would mutate
+  // DEFAULT_CONFIG and leak into every subsequent loadConfig call in the
+  // same process.
+  let config: DevSetGoConfig = deepMerge(structuredClone(DEFAULT_CONFIG), fileConfig);
 
   // 3. Apply CLI overrides
   if (overrides.output) {

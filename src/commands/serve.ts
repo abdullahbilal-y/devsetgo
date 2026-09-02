@@ -135,26 +135,27 @@ function openBrowser(url: string): void {
   }
 }
 
-export async function serveCommand(cwd: string, options: ServeOptions): Promise<void> {
-  const absRoot = resolve(cwd);
+/** A running playground server. */
+export interface PlaygroundServer {
+  /** The port actually bound (resolved, so port 0 reports the real one). */
+  port: number;
+  /** Base URL for local requests. */
+  url: string;
+  /** Stop listening and resolve once closed. */
+  close: () => Promise<void>;
+}
 
-  const port = Number.parseInt(options.port ?? '3000', 10);
-  if (!Number.isInteger(port) || port < 0 || port > 65535) {
-    throw new Error(`Invalid port: ${options.port}. Expected an integer between 0 and 65535.`);
-  }
-
-  log.banner('devsetgo serve');
-
-  const config = await loadConfig(absRoot, { config: options.config });
-  const playgroundDir = resolve(absRoot, config.playground.output_dir);
-
-  if (!existsSync(playgroundDir)) {
-    throw new Error(
-      `Playground directory not found: ${playgroundDir}\n` +
-        `Run "devsetgo build" or "devsetgo playground" first.`,
-    );
-  }
-
+/**
+ * Build and start the static playground server.
+ *
+ * Split out from `serveCommand` so tests can drive a real socket and read back
+ * the bound port; the command itself only adds banner output and the
+ * wait-for-signal loop.
+ */
+export async function startPlaygroundServer(
+  playgroundDir: string,
+  port: number,
+): Promise<PlaygroundServer> {
   const handler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const url = req.url || '/';
 
@@ -222,7 +223,7 @@ export async function serveCommand(cwd: string, options: ServeOptions): Promise<
     });
   });
 
-  await new Promise<void>((resolvePromise, rejectPromise) => {
+  const boundPort = await new Promise<number>((resolvePromise, rejectPromise) => {
     server.once('error', (err: NodeJS.ErrnoException) => {
       if (err.code === 'EADDRINUSE') {
         rejectPromise(
@@ -237,24 +238,55 @@ export async function serveCommand(cwd: string, options: ServeOptions): Promise<
 
     server.listen(port, () => {
       const address = server.address();
-      const actualPort = typeof address === 'object' && address ? address.port : port;
-      const url = `http://localhost:${actualPort}`;
-
-      log.success(`Server running at ${pc.bold(pc.cyan(url))}`);
-      log.info('Press Ctrl+C to stop');
-
-      if (options.open) openBrowser(url);
-      resolvePromise();
+      resolvePromise(typeof address === 'object' && address ? address.port : port);
     });
   });
+
+  return {
+    port: boundPort,
+    url: `http://localhost:${boundPort}`,
+    close: () =>
+      new Promise<void>((resolvePromise) => {
+        server.close(() => resolvePromise());
+        // Don't hang forever on keep-alive connections.
+        setTimeout(() => resolvePromise(), 2000).unref();
+        server.closeAllConnections?.();
+      }),
+  };
+}
+
+export async function serveCommand(cwd: string, options: ServeOptions): Promise<void> {
+  const absRoot = resolve(cwd);
+
+  const port = Number.parseInt(options.port ?? '3000', 10);
+  if (!Number.isInteger(port) || port < 0 || port > 65535) {
+    throw new Error(`Invalid port: ${options.port}. Expected an integer between 0 and 65535.`);
+  }
+
+  log.banner('devsetgo serve');
+
+  const config = await loadConfig(absRoot, { config: options.config });
+  const playgroundDir = resolve(absRoot, config.playground.output_dir);
+
+  if (!existsSync(playgroundDir)) {
+    throw new Error(
+      `Playground directory not found: ${playgroundDir}\n` +
+        `Run "devsetgo build" or "devsetgo playground" first.`,
+    );
+  }
+
+  const server = await startPlaygroundServer(playgroundDir, port);
+
+  log.success(`Server running at ${pc.bold(pc.cyan(server.url))}`);
+  log.info('Press Ctrl+C to stop');
+
+  if (options.open) openBrowser(server.url);
 
   // Keep the process alive until interrupted, then shut down cleanly.
   await new Promise<void>((resolvePromise) => {
     const shutdown = (): void => {
       log.info('Shutting down...');
-      server.close(() => resolvePromise());
-      // Don't hang forever on keep-alive connections.
-      setTimeout(() => resolvePromise(), 2000).unref();
+      void server.close().then(() => resolvePromise());
     };
 
     process.once('SIGINT', shutdown);
