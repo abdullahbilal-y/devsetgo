@@ -68,16 +68,8 @@ export async function generateDiagrams(
   if (config.assets.diagrams.format === 'svg' || config.assets.diagrams.format === 'all') {
     for (const file of [...files]) {
       if (file.type === 'mermaid') {
-        try {
-          const svgFile = await renderMermaidToSVG(
-            join(rootDir, file.path),
-            outputDir,
-          );
-          if (svgFile) files.push(svgFile);
-        } catch (err) {
-          logger.warn(`Could not render SVG for ${file.path}: ${err}`);
-          logger.debug('Install @mermaid-js/mermaid-cli for SVG rendering');
-        }
+        const svgFile = await renderMermaidToSVG(rootDir, file.path);
+        if (svgFile) files.push(svgFile);
       }
     }
   }
@@ -222,29 +214,51 @@ function generateDependencyDiagram(manifest: ProjectManifest): string {
  * Render a Mermaid file to SVG using @mermaid-js/mermaid-cli.
  */
 async function renderMermaidToSVG(
-  mermaidPath: string,
-  outputDir: string,
+  rootDir: string,
+  relativeMermaidPath: string,
 ): Promise<GeneratedFile | null> {
-  try {
-    const { execSync } = await import('node:child_process');
-    const baseName = mermaidPath.replace(/\.mermaid$/, '');
-    const svgPath = `${baseName}.svg`;
+  const absMermaidPath = join(rootDir, relativeMermaidPath);
+  const relativeSvgPath = relativeMermaidPath.replace(/\.mermaid$/, '.svg');
+  const absSvgPath = join(rootDir, relativeSvgPath);
 
-    execSync(
-      `npx -y @mermaid-js/mermaid-cli mmdc -i "${mermaidPath}" -o "${svgPath}" -t dark -b transparent`,
-      { timeout: 30000, stdio: 'pipe' },
+  try {
+    const { execFile } = await import('node:child_process');
+    const { promisify } = await import('node:util');
+    const execFileAsync = promisify(execFile);
+
+    // `execFile` (no shell) keeps paths containing spaces or shell characters
+    // from being re-parsed. mermaid-cli is fetched on demand rather than
+    // installed: it pulls a full Chromium, which most users never need.
+    await execFileAsync(
+      'npx',
+      [
+        '-y',
+        '@mermaid-js/mermaid-cli',
+        'mmdc',
+        '-i', absMermaidPath,
+        '-o', absSvgPath,
+        '-t', 'dark',
+        '-b', 'transparent',
+      ],
+      { timeout: 120_000, shell: process.platform === 'win32' },
     );
 
     const { stat } = await import('node:fs/promises');
-    const stats = await stat(svgPath);
+    const stats = await stat(absSvgPath);
 
-    logger.success(`Rendered SVG: ${svgPath}`);
+    logger.success(`Rendered SVG: ${relativeSvgPath}`);
     return {
-      path: svgPath,
+      // Repo-relative, matching every other entry in the returned list.
+      path: relativeSvgPath,
       size: stats.size,
       type: 'svg',
     };
-  } catch {
+  } catch (err) {
+    logger.warn(
+      `Skipped SVG render for ${relativeMermaidPath} ` +
+        `(the .mermaid source was still written).`,
+    );
+    logger.debug(String(err));
     return null;
   }
 }

@@ -18,7 +18,7 @@ describe('OpenAPI Parser', () => {
   it('should extract HTTP methods correctly', async () => {
     const endpoints = await parseOpenAPIFile(FIXTURE_PATH);
 
-    const methods = endpoints.map(e => e.method);
+    const methods = endpoints.map((e) => e.method);
     expect(methods).toContain('GET');
     expect(methods).toContain('POST');
     expect(methods).toContain('DELETE');
@@ -27,26 +27,28 @@ describe('OpenAPI Parser', () => {
   it('should extract endpoint paths', async () => {
     const endpoints = await parseOpenAPIFile(FIXTURE_PATH);
 
-    const paths = endpoints.map(e => e.path);
+    const paths = endpoints.map((e) => e.path);
     expect(paths).toContain('/pets');
     expect(paths).toContain('/pets/{petId}');
   });
 
   it('should extract parameters', async () => {
-    const listEndpoint = (await parseOpenAPIFile(FIXTURE_PATH))
-      .find(e => e.method === 'GET' && e.path === '/pets');
+    const listEndpoint = (await parseOpenAPIFile(FIXTURE_PATH)).find(
+      (e) => e.method === 'GET' && e.path === '/pets',
+    );
 
     expect(listEndpoint).toBeDefined();
     expect(listEndpoint!.parameters.length).toBeGreaterThanOrEqual(1);
 
-    const limitParam = listEndpoint!.parameters.find(p => p.name === 'limit');
+    const limitParam = listEndpoint!.parameters.find((p) => p.name === 'limit');
     expect(limitParam).toBeDefined();
     expect(limitParam!.in).toBe('query');
   });
 
   it('should extract request body for POST', async () => {
-    const createEndpoint = (await parseOpenAPIFile(FIXTURE_PATH))
-      .find(e => e.method === 'POST' && e.path === '/pets');
+    const createEndpoint = (await parseOpenAPIFile(FIXTURE_PATH)).find(
+      (e) => e.method === 'POST' && e.path === '/pets',
+    );
 
     expect(createEndpoint).toBeDefined();
     expect(createEndpoint!.requestBody).toBeDefined();
@@ -57,7 +59,7 @@ describe('OpenAPI Parser', () => {
     const endpoints = await parseOpenAPIFile(FIXTURE_PATH);
 
     // At least one endpoint should have auth
-    const withAuth = endpoints.filter(e => e.auth);
+    const withAuth = endpoints.filter((e) => e.auth);
     expect(withAuth.length).toBeGreaterThan(0);
     expect(withAuth[0].auth!.type).toBe('http');
     expect(withAuth[0].auth!.scheme).toBe('bearer');

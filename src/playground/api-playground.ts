@@ -72,11 +72,12 @@ function generateSidebar(grouped: Record<string, APIEndpoint[]>): string {
  * Generate endpoint detail panels.
  */
 function generateEndpointPanels(endpoints: APIEndpoint[], baseUrl: string): string {
-  return endpoints.map(ep => {
-    const panelId = `${ep.method}_${ep.path.replace(/[^a-zA-Z0-9]/g, '_')}`;
-    const methodClass = `method--${ep.method.toLowerCase()}`;
+  return endpoints
+    .map((ep) => {
+      const panelId = `${ep.method}_${ep.path.replace(/[^a-zA-Z0-9]/g, '_')}`;
+      const methodClass = `method--${ep.method.toLowerCase()}`;
 
-    return `
+      return `
     <div class="api-panel" id="panel-${panelId}" style="display:none;">
       <div class="api-panel__header">
         <span class="api-method api-method--large ${methodClass}">${ep.method}</span>
@@ -105,7 +106,8 @@ function generateEndpointPanels(endpoints: APIEndpoint[], baseUrl: string): stri
         </div>
       </div>
     </div>`;
-  }).join('\n');
+    })
+    .join('\n');
 }
 
 /**
@@ -114,9 +116,10 @@ function generateEndpointPanels(endpoints: APIEndpoint[], baseUrl: string): stri
 function generateParameterInputs(ep: APIEndpoint): string {
   if (ep.parameters.length === 0) return '';
 
-  const rows = ep.parameters.map(param => {
-    const required = param.required ? '<span class="required">*</span>' : '';
-    return `
+  const rows = ep.parameters
+    .map((param) => {
+      const required = param.required ? '<span class="required">*</span>' : '';
+      return `
       <tr>
         <td><code>${escapeHtml(param.name)}</code>${required}</td>
         <td><span class="param-in">${param.in}</span></td>
@@ -126,7 +129,8 @@ function generateParameterInputs(ep: APIEndpoint): string {
                  ${param.example ? `value="${escapeHtml(String(param.example))}"` : ''} />
         </td>
       </tr>`;
-  }).join('');
+    })
+    .join('');
 
   return `
     <div class="api-panel__params">

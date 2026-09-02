@@ -12,12 +12,7 @@ import { findCodeFiles, findOpenAPIFiles, findMarkdownFiles } from '../utils/fil
 import { parseCodeFiles, extractExports } from './code-parser.js';
 import { parseOpenAPIFiles } from './openapi-parser.js';
 import { parseMarkdownFiles } from './markdown-parser.js';
-import type {
-  ProjectManifest,
-  DevSetGoConfig,
-  ModuleInfo,
-  DependencyInfo,
-} from './types.js';
+import type { ProjectManifest, DevSetGoConfig, ModuleInfo, DependencyInfo } from './types.js';
 
 const logger = createLogger('parser');
 
@@ -44,9 +39,9 @@ export async function parseProject(
 
   // 2. Parse all file types in parallel
   const [codeSnippets, apiEndpoints, docSections] = await Promise.all([
-    parseCodeFiles(codeFiles.map(f => join(absRoot, f))),
-    parseOpenAPIFiles(openAPIFiles.map(f => join(absRoot, f))),
-    parseMarkdownFiles(markdownFiles.map(f => join(absRoot, f))),
+    parseCodeFiles(codeFiles.map((f) => join(absRoot, f))),
+    parseOpenAPIFiles(openAPIFiles.map((f) => join(absRoot, f))),
+    parseMarkdownFiles(markdownFiles.map((f) => join(absRoot, f))),
   ]);
 
   // 3. Detect modules
@@ -92,18 +87,17 @@ async function detectModules(rootDir: string, codeFiles: string[]): Promise<Modu
 
   // Check each directory for index files (indicating a module)
   for (const [dir, files] of dirMap) {
-    const hasIndex = files.some(f =>
-      f.endsWith('/index.ts') ||
-      f.endsWith('/index.js') ||
-      f.endsWith('/mod.ts') ||
-      f.endsWith('/lib.rs') ||
-      f.endsWith('/__init__.py')
+    const hasIndex = files.some(
+      (f) =>
+        f.endsWith('/index.ts') ||
+        f.endsWith('/index.js') ||
+        f.endsWith('/mod.ts') ||
+        f.endsWith('/lib.rs') ||
+        f.endsWith('/__init__.py'),
     );
 
     if (hasIndex || files.length >= 2) {
-      const indexFile = files.find(f =>
-        f.endsWith('/index.ts') || f.endsWith('/index.js')
-      );
+      const indexFile = files.find((f) => f.endsWith('/index.ts') || f.endsWith('/index.js'));
 
       let exports: string[] = [];
       if (indexFile) {

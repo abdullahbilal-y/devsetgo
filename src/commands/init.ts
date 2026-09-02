@@ -7,7 +7,14 @@
 import { join, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { log } from '../utils/logger.js';
-import { findCodeFiles, findOpenAPIFiles, findMarkdownFiles, ensureDir, safeWriteFile, readFileContent } from '../utils/file-system.js';
+import {
+  findCodeFiles,
+  findOpenAPIFiles,
+  findMarkdownFiles,
+  ensureDir,
+  safeWriteFile,
+  readFileContent,
+} from '../utils/file-system.js';
 import { stringify as yamlStringify } from 'yaml';
 
 interface InitOptions {
@@ -54,9 +61,10 @@ export async function initCommand(cwd: string, options: InitOptions): Promise<vo
       projectDesc = pkg.description || '';
       installCommand = pkg.name ? `npm install ${pkg.name}` : '';
       if (pkg.repository) {
-        projectRepo = typeof pkg.repository === 'string'
-          ? pkg.repository
-          : pkg.repository.url?.replace(/^git\+/, '').replace(/\.git$/, '') || '';
+        projectRepo =
+          typeof pkg.repository === 'string'
+            ? pkg.repository
+            : pkg.repository.url?.replace(/^git\+/, '').replace(/\.git$/, '') || '';
       }
     } catch {
       // Ignore
@@ -93,11 +101,7 @@ export async function initCommand(cwd: string, options: InitOptions): Promise<vo
       format: 'github',
       hero: {
         tagline: projectDesc || 'TODO: Write a compelling one-line value proposition.',
-        badges: [
-          { type: 'build', status: 'passing' },
-          { type: 'version' },
-          { type: 'license' },
-        ],
+        badges: [{ type: 'build', status: 'passing' }, { type: 'version' }, { type: 'license' }],
       },
       problem: 'TODO: Describe the specific pain point your tool solves.',
       solution: 'TODO: Explain how your tool solves the problem.',

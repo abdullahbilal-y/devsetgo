@@ -5,7 +5,12 @@
  * into a 10-section format proven to convert developer visits into adoption.
  */
 
-import type { DevSetGoConfig, ProjectManifest, FeatureConfig, MetricConfig } from '../parser/types.js';
+import type {
+  DevSetGoConfig,
+  ProjectManifest,
+  FeatureConfig,
+  MetricConfig,
+} from '../parser/types.js';
 import { generateBadgeStrip, generateTechStackBadges } from './badge-generator.js';
 import { generateDualCTA } from './cta-blocks.js';
 
@@ -26,7 +31,7 @@ export const CRO_SECTIONS = [
   'contributing',
 ] as const;
 
-export type CROSection = typeof CRO_SECTIONS[number];
+export type CROSection = (typeof CRO_SECTIONS)[number];
 
 /**
  * Generate the full CRO-optimized README content.
@@ -65,7 +70,7 @@ export function generateCROReadme(
   sections.push('quick-start');
 
   // 6. Interactive Demo
-  if (manifest.codeSnippets.some(s => s.runnable) || manifest.apiEndpoints.length > 0) {
+  if (manifest.codeSnippets.some((s) => s.runnable) || manifest.apiEndpoints.length > 0) {
     parts.push(generateInteractiveDemoSection(config));
     sections.push('interactive-demo');
   }
@@ -92,9 +97,7 @@ export function generateCROReadme(
 
   // Tech stack badges at bottom
   if (manifest.dependencies.length > 0) {
-    const techBadges = generateTechStackBadges(
-      manifest.dependencies.map(d => d.name),
-    );
+    const techBadges = generateTechStackBadges(manifest.dependencies.map((d) => d.name));
     if (techBadges) {
       parts.push(`\n<div align="center">\n\n### Built With\n\n${techBadges}\n\n</div>\n`);
     }
@@ -163,9 +166,10 @@ function generateArchitectureSection(manifest: ProjectManifest): string {
 
   for (const mod of manifest.modules) {
     const id = mod.name.replace(/[^a-zA-Z0-9]/g, '_');
-    const exports = mod.exports.length > 0
-      ? `<br/><sub>${mod.exports.slice(0, 3).join(', ')}${mod.exports.length > 3 ? '...' : ''}</sub>`
-      : '';
+    const exports =
+      mod.exports.length > 0
+        ? `<br/><sub>${mod.exports.slice(0, 3).join(', ')}${mod.exports.length > 3 ? '...' : ''}</sub>`
+        : '';
     mermaid += `    ${id}["${mod.name}${exports}"]\n`;
   }
 

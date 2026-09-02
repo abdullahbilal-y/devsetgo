@@ -1,17 +1,15 @@
 /**
- * devsetgo — WASM Compiler
+ * devsetgo — Snippet Preparation
  *
- * Wraps QuickJS-emscripten to compile JavaScript snippets into
- * executable WebAssembly sandboxed contexts.
+ * Prepares source snippets for execution by the browser-side QuickJS
+ * WebAssembly runtime (see `runtime.ts`, which owns the client code).
  */
 
-import { createLogger } from '../utils/logger.js';
+import ts from 'typescript';
 import type { CodeSnippet } from '../parser/types.js';
 
-const logger = createLogger('wasm-compiler');
-
 /**
- * Metadata for a compiled WASM-ready snippet.
+ * Metadata for a snippet that is ready to run in the browser sandbox.
  */
 export interface CompiledSnippet {
   id: string;
@@ -24,68 +22,65 @@ export interface CompiledSnippet {
   expectedOutput?: string;
 }
 
+/** Languages the browser QuickJS runtime can execute. */
+const EXECUTABLE_LANGUAGES = new Set(['javascript', 'typescript']);
+
 /**
  * Prepare code snippets for browser-side WASM execution.
  *
- * Since QuickJS runs in the browser, we don't compile to WASM here —
- * instead we prepare the snippet metadata and code that will be executed
- * client-side by the QuickJS WASM runtime loaded in the browser.
+ * Nothing is compiled to WebAssembly here — QuickJS itself is the WASM module,
+ * and it runs in the browser. This step strips types, removes ESM syntax the
+ * sandbox cannot resolve, and makes each snippet produce visible output.
  */
 export function prepareSnippetsForExecution(snippets: CodeSnippet[]): CompiledSnippet[] {
-  const hasAnnotated = snippets.some(s => s.runnable);
+  const hasAnnotated = snippets.some((s) => s.runnable);
 
-  const targetSnippets = hasAnnotated
-    ? snippets.filter(s => s.runnable && (s.language === 'javascript' || s.language === 'typescript'))
-    : snippets.filter(s => s.language === 'javascript' || s.language === 'typescript');
+  const targetSnippets = snippets.filter(
+    (s) => EXECUTABLE_LANGUAGES.has(s.language) && (!hasAnnotated || s.runnable),
+  );
 
-  return targetSnippets
-    .map(snippet => {
-      let code = snippet.code;
-
-      // Strip TypeScript type annotations for JS execution
-      if (snippet.language === 'typescript') {
-        code = stripTypeAnnotations(code);
-      }
-
-      // Strip export keyword so snippets are standard runnable JS in browser
-      code = code.replace(/^export\s+default\s+/gm, '').replace(/^export\s+/gm, '');
-
-      // Auto-invoke top-level function if defined and not already invoked
-      const funcMatch = code.match(/function\s+(\w+)\s*\(/);
-      if (funcMatch) {
-        const fnName = funcMatch[1];
-        const afterDeclaration = code.slice(funcMatch.index! + funcMatch[0].length);
-        const isCalled = afterDeclaration.includes(`${fnName}(`);
-        if (!isCalled) {
-          code = `${code.trim()}\n\n// Run the demo:\n${fnName}();`;
-        }
-      }
-
-      // Wrap standalone expressions to capture output
-      if (!code.includes('console.log') && !code.includes('console.error')) {
-        code = wrapWithOutputCapture(code);
-      }
-
-      return {
-        id: snippet.id,
-        title: snippet.title,
-        description: snippet.description,
-        code,
-        language: snippet.language,
-        category: snippet.category || 'examples',
-        runnable: snippet.runnable,
-        expectedOutput: snippet.expectedOutput,
-      };
-    });
+  return targetSnippets.map((snippet) => ({
+    id: snippet.id,
+    title: snippet.title,
+    description: snippet.description,
+    code: prepareCode(snippet.code, snippet.language),
+    language: snippet.language,
+    category: snippet.category || 'examples',
+    runnable: snippet.runnable,
+    expectedOutput: snippet.expectedOutput,
+  }));
 }
 
-import ts from 'typescript';
+/**
+ * Transform one snippet's source into something the sandbox can run directly.
+ */
+export function prepareCode(source: string, language: string): string {
+  let code = source;
+
+  if (language === 'typescript') {
+    code = stripTypeAnnotations(code);
+  }
+
+  // The sandbox has no module loader, so `export` is a syntax error there.
+  code = stripExports(code);
+
+  code = appendAutoInvocation(code);
+
+  // A snippet that never logs would run and show nothing.
+  if (!/\bconsole\.(log|error|warn|info)\b/.test(code)) {
+    code = wrapWithOutputCapture(code);
+  }
+
+  return code;
+}
 
 /**
- * Strip TypeScript type annotations using the official TypeScript transpileModule API.
- * This guarantees 100% syntactical accuracy without corrupting object properties or colons.
+ * Strip TypeScript type annotations using the official transpiler.
+ *
+ * Uses `transpileModule` rather than regex substitution so object literals,
+ * ternaries, and generics survive intact.
  */
-function stripTypeAnnotations(code: string): string {
+export function stripTypeAnnotations(code: string): string {
   try {
     const result = ts.transpileModule(code, {
       compilerOptions: {
@@ -100,131 +95,65 @@ function stripTypeAnnotations(code: string): string {
   }
 }
 
-/**
- * Wrap code to capture the return value of the last expression.
- */
-function wrapWithOutputCapture(code: string): string {
-  const lines = code.trim().split('\n');
-  const lastLine = lines[lines.length - 1].trim();
-
-  // If the last line is an expression (not a statement), wrap it with console.log
-  if (
-    lastLine &&
-    !lastLine.endsWith(';') &&
-    !lastLine.startsWith('//') &&
-    !lastLine.startsWith('/*') &&
-    !lastLine.startsWith('}') &&
-    !lastLine.startsWith('return') &&
-    !lastLine.startsWith('if') &&
-    !lastLine.startsWith('for') &&
-    !lastLine.startsWith('while')
-  ) {
-    lines[lines.length - 1] = `console.log(${lastLine})`;
-  }
-
-  return lines.join('\n');
+/** Remove `export` / `export default` prefixes, leaving plain declarations. */
+function stripExports(code: string): string {
+  return code.replace(/^[ \t]*export\s+default\s+/gm, '').replace(/^[ \t]*export\s+/gm, '');
 }
 
 /**
- * Generate the client-side WASM execution runtime code.
- * This script will be embedded in the playground HTML.
- */
-export function generateWASMRuntime(): string {
-  return `
-/**
- * devsetgo — Browser WASM Runtime
+ * Append a call to a snippet's top-level function when nothing invokes it.
  *
- * Uses QuickJS-emscripten to execute JavaScript snippets
- * in a sandboxed WebAssembly environment.
+ * The call must be detected at column zero. Searching the whole body instead
+ * would treat a recursive call (`fibonacci(n - 1)`) as an existing invocation,
+ * so recursive demos would define a function and then print nothing.
  */
+export function appendAutoInvocation(code: string): string {
+  const declaration = /^(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/m.exec(code);
+  if (!declaration) return code;
 
-import { getQuickJS } from 'quickjs-emscripten';
+  const fnName = declaration[1];
 
-let quickJS = null;
+  // A top-level call is one that starts its own line with no indentation —
+  // anything indented is inside the function body.
+  const topLevelCall = new RegExp(`^(?:await\\s+|void\\s+)?${escapeRegExp(fnName)}\\s*\\(`, 'm');
 
-/**
- * Initialize the QuickJS WASM runtime.
- */
-async function initRuntime() {
-  if (!quickJS) {
-    quickJS = await getQuickJS();
-  }
-  return quickJS;
+  // Exclude the declaration line itself from the search.
+  const withoutDeclaration = code.replace(/^(?:async\s+)?function\s+[A-Za-z_$][\w$]*\s*\(/gm, '');
+
+  if (topLevelCall.test(withoutDeclaration)) return code;
+
+  return `${code.trim()}\n\n// Run the demo:\n${fnName}();`;
+}
+
+/** Escape a string for literal use inside a RegExp. */
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
- * Execute a JavaScript code string in the QuickJS sandbox.
- * Returns { output: string[], error: string | null, duration: number }
+ * Wrap a trailing bare expression in `console.log` so it produces output.
  */
-async function executeCode(code) {
-  const qjs = await initRuntime();
-  const vm = qjs.newContext();
-  const output = [];
-  const startTime = performance.now();
+export function wrapWithOutputCapture(code: string): string {
+  const lines = code.trimEnd().split('\n');
+  const lastIndex = lines.length - 1;
+  const lastLine = lines[lastIndex]?.trim() ?? '';
 
-  try {
-    // Redirect console.log to capture output
-    const logHandle = vm.newFunction('log', (...args) => {
-      const parts = args.map(arg => {
-        const str = vm.getString(arg);
-        return str;
-      });
-      output.push(parts.join(' '));
-    });
+  const isStatement =
+    !lastLine ||
+    lastLine.endsWith(';') ||
+    lastLine.endsWith('{') ||
+    lastLine.startsWith('//') ||
+    lastLine.startsWith('/*') ||
+    lastLine.startsWith('*') ||
+    lastLine.startsWith('}') ||
+    /^(return|if|for|while|switch|try|catch|finally|else|const|let|var|function|class|throw)\b/.test(
+      lastLine,
+    );
 
-    const consoleHandle = vm.newObject();
-    vm.setProp(consoleHandle, 'log', logHandle);
-    vm.setProp(consoleHandle, 'info', logHandle);
-    vm.setProp(consoleHandle, 'warn', logHandle);
-    vm.setProp(consoleHandle, 'error', logHandle);
-    vm.setProp(vm.global, 'console', consoleHandle);
+  if (isStatement) return lines.join('\n');
 
-    consoleHandle.dispose();
-    logHandle.dispose();
-
-    // Execute the code
-    const result = vm.evalCode(code);
-
-    if (result.error) {
-      const errorMsg = vm.getString(result.error);
-      result.error.dispose();
-      return {
-        output,
-        error: errorMsg,
-        duration: performance.now() - startTime,
-      };
-    }
-
-    // Capture return value if any
-    const returnValue = vm.getString(result.value);
-    result.value.dispose();
-
-    if (returnValue && returnValue !== 'undefined') {
-      output.push(returnValue);
-    }
-
-    return {
-      output,
-      error: null,
-      duration: performance.now() - startTime,
-    };
-  } catch (err) {
-    return {
-      output,
-      error: err.message || String(err),
-      duration: performance.now() - startTime,
-    };
-  } finally {
-    vm.dispose();
-  }
-}
-
-// Export to global scope for use by playground UI
-window.__devsetgo = {
-  initRuntime,
-  executeCode,
-};
-`;
+  lines[lastIndex] = `console.log(${lastLine})`;
+  return lines.join('\n');
 }
 
 export default prepareSnippetsForExecution;

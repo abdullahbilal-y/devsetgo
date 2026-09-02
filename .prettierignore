@@ -1,0 +1,12 @@
+dist/
+coverage/
+node_modules/
+.devsetgo/
+assets/
+package-lock.json
+tests/fixtures/
+
+# Generated output: formatting it only creates churn against the next
+# regeneration. CHANGELOG.md is hand-authored but hand-wrapped.
+README.md
+CHANGELOG.md

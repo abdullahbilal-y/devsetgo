@@ -97,7 +97,7 @@ export function renderPlaygroundHTML(
 
   <!-- Snippet Data -->
   <script type="application/json" id="snippets-data">
-    ${JSON.stringify(compiledSnippets.map(s => ({ id: s.id, title: s.title, code: s.code, description: s.description })))}
+    ${JSON.stringify(compiledSnippets.map((s) => ({ id: s.id, title: s.title, code: s.code, description: s.description })))}
   </script>
 
   <!-- Runtime -->
@@ -173,14 +173,18 @@ function generateCodeSidebar(categories: Map<string, CompiledSnippet[]>): string
     html += `
     <div class="sidebar__group">
       <h4 class="sidebar__group-title">${escapeHtml(category)}</h4>
-      ${snippets.map((s, i) => `
+      ${snippets
+        .map(
+          (s, i) => `
         <button class="sidebar__item ${i === 0 ? 'sidebar__item--active' : ''}"
                 data-snippet-id="${escapeHtml(s.id)}"
                 onclick="loadSnippet('${escapeHtml(s.id)}')">
           <span class="sidebar__item-icon">⟩</span>
           <span class="sidebar__item-title">${escapeHtml(s.title)}</span>
         </button>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>`;
   }
 

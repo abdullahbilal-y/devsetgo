@@ -72,6 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
 let wasmReady = false;
 let quickJS = null;
 
+/** Wall-clock budget for a single snippet run, in milliseconds. */
+const EXECUTION_TIMEOUT_MS = 5000;
+
 async function initWASMRuntime() {
   try {
     // Dynamically import QuickJS
@@ -139,19 +142,33 @@ async function runCode() {
     logFn.dispose();
     consoleObj.dispose();
 
-    // Pre-process code for eval: strip export keywords
+    // Pre-process code for eval: strip export keywords. The backslashes are
+    // doubled because this source sits inside a template literal.
     let evalCodeStr = code
-      .replace(/^export\s+default\s+/gm, '')
-      .replace(/^export\s+/gm, '');
+      .replace(/^[ \\t]*export\\s+default\\s+/gm, '')
+      .replace(/^[ \\t]*export\\s+/gm, '');
 
-    // Auto-invoke top-level function if defined and not already invoked
-    const funcMatch = evalCodeStr.match(/function\\s+([a-zA-Z0-9_$]+)\\s*\\(/);
+    // Auto-invoke a top-level function that nothing calls, so that editing in
+    // a new definition still produces output. The existing-call check must be
+    // anchored at column zero: searching the whole source would treat a
+    // recursive call inside the body as an invocation and stay silent.
+    const funcMatch = evalCodeStr.match(/^(?:async\\s+)?function\\s+([A-Za-z_$][\\w$]*)\\s*\\(/m);
     if (funcMatch) {
       const fnName = funcMatch[1];
-      if (!evalCodeStr.includes(fnName + '()') && !evalCodeStr.includes(fnName + '(')) {
+      const withoutDecl = evalCodeStr.replace(
+        /^(?:async\\s+)?function\\s+[A-Za-z_$][\\w$]*\\s*\\(/gm,
+        ''
+      );
+      const called = new RegExp('^(?:await\\\\s+|void\\\\s+)?' + fnName + '\\\\s*\\\\(', 'm');
+      if (!called.test(withoutDecl)) {
         evalCodeStr += '\\n\\n' + fnName + '();';
       }
     }
+
+    // Stop runaway snippets instead of freezing the tab. QuickJS invokes this
+    // between operations; returning true aborts the run with an interrupt.
+    const deadline = Date.now() + EXECUTION_TIMEOUT_MS;
+    vm.runtime.setInterruptHandler(() => Date.now() > deadline);
 
     // Execute
     const result = vm.evalCode(evalCodeStr);

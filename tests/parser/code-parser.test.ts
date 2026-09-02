@@ -16,7 +16,7 @@ describe('Code Parser', () => {
       // Should find the two @playground-annotated functions
       expect(snippets.length).toBeGreaterThanOrEqual(2);
 
-      const greetSnippet = snippets.find(s => s.title === 'Greet Function');
+      const greetSnippet = snippets.find((s) => s.title === 'Greet Function');
       expect(greetSnippet).toBeDefined();
       expect(greetSnippet!.category).toBe('basics');
       expect(greetSnippet!.runnable).toBe(true);
@@ -26,7 +26,7 @@ describe('Code Parser', () => {
     it('should extract snippet metadata correctly', async () => {
       const snippets = await parseCodeFile(FIXTURE_PATH);
 
-      const fibSnippet = snippets.find(s => s.title === 'Fibonacci');
+      const fibSnippet = snippets.find((s) => s.title === 'Fibonacci');
       expect(fibSnippet).toBeDefined();
       expect(fibSnippet!.category).toBe('algorithms');
       expect(fibSnippet!.expectedOutput).toBe('55');

@@ -120,9 +120,7 @@ export function generateBadge(
       const status = badge.status || '';
       const color = badge.color || BADGE_COLORS.blue;
       const url = shieldsBadge(label, status, color);
-      return badge.url
-        ? `[![${label}](${url})](${badge.url})`
-        : `![${label}](${url})`;
+      return badge.url ? `[![${label}](${url})](${badge.url})` : `![${label}](${url})`;
     }
 
     default:
@@ -137,7 +135,7 @@ export function generateTechStackBadges(dependencies: string[]): string {
   const techBadges: Record<string, { logo: string; color: string }> = {
     typescript: { logo: 'typescript', color: '3178c6' },
     react: { logo: 'react', color: '61dafb' },
-    'next': { logo: 'nextdotjs', color: '000000' },
+    next: { logo: 'nextdotjs', color: '000000' },
     vue: { logo: 'vuedotjs', color: '4fc08d' },
     node: { logo: 'nodedotjs', color: '339933' },
     express: { logo: 'express', color: '000000' },
@@ -155,9 +153,7 @@ export function generateTechStackBadges(dependencies: string[]): string {
   const badges: string[] = [];
 
   for (const dep of dependencies) {
-    const key = Object.keys(techBadges).find(k =>
-      dep.toLowerCase().includes(k),
-    );
+    const key = Object.keys(techBadges).find((k) => dep.toLowerCase().includes(k));
     if (key) {
       const { logo, color } = techBadges[key];
       badges.push(

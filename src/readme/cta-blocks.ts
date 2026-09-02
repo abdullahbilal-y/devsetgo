@@ -13,9 +13,7 @@ import type { CTAConfig } from '../parser/types.js';
  */
 export function generateDualCTA(cta: CTAConfig): string {
   const installCTA = generateInstallCTA(cta.install);
-  const enterpriseCTA = cta.enterprise.enabled
-    ? generateEnterpriseCTA(cta.enterprise)
-    : '';
+  const enterpriseCTA = cta.enterprise.enabled ? generateEnterpriseCTA(cta.enterprise) : '';
 
   if (!cta.enterprise.enabled) {
     return `

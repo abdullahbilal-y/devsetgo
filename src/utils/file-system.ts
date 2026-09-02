@@ -5,7 +5,7 @@
  */
 
 import { readFile, writeFile, mkdir, readdir, stat, copyFile } from 'node:fs/promises';
-import { resolve, join, relative, extname, basename, dirname } from 'node:path';
+import { resolve, join, relative, dirname } from 'node:path';
 import { existsSync } from 'node:fs';
 import { glob } from 'glob';
 import { log } from './logger.js';
@@ -14,8 +14,17 @@ import { log } from './logger.js';
 
 /** Common source code file extensions */
 const CODE_EXTENSIONS = new Set([
-  '.js', '.mjs', '.cjs', '.ts', '.mts', '.cts',
-  '.jsx', '.tsx', '.py', '.rs', '.go',
+  '.js',
+  '.mjs',
+  '.cjs',
+  '.ts',
+  '.mts',
+  '.cts',
+  '.jsx',
+  '.tsx',
+  '.py',
+  '.rs',
+  '.go',
 ]);
 
 /** OpenAPI schema file patterns */
@@ -27,10 +36,7 @@ const OPENAPI_PATTERNS = [
 ];
 
 /** Markdown file patterns */
-const MARKDOWN_PATTERNS = [
-  '**/*.md',
-  '**/*.mdx',
-];
+const MARKDOWN_PATTERNS = ['**/*.md', '**/*.mdx'];
 
 /** Default ignore patterns */
 const IGNORE_PATTERNS = [
@@ -50,7 +56,7 @@ const IGNORE_PATTERNS = [
  * Discover all source code files in a directory.
  */
 export async function findCodeFiles(rootDir: string): Promise<string[]> {
-  const patterns = [...CODE_EXTENSIONS].map(ext => `**/*${ext}`);
+  const patterns = [...CODE_EXTENSIONS].map((ext) => `**/*${ext}`);
   return findFiles(rootDir, patterns);
 }
 
@@ -179,7 +185,7 @@ export async function listFilesRecursive(dirPath: string): Promise<string[]> {
     const fullPath = join(absDir, entry.name);
 
     if (entry.isDirectory()) {
-      if (!IGNORE_PATTERNS.some(p => entry.name === p.replace('/**', ''))) {
+      if (!IGNORE_PATTERNS.some((p) => entry.name === p.replace('/**', ''))) {
         const nested = await listFilesRecursive(fullPath);
         results.push(...nested);
       }

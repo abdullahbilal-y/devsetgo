@@ -14,9 +14,6 @@ const logger = createLogger('markdown-parser');
 /** Regex to match fenced code blocks */
 const FENCED_CODE_REGEX = /```(\w+)?\s*\n([\s\S]*?)```/g;
 
-/** Regex to match headings */
-const HEADING_REGEX = /^(#{1,6})\s+(.+)$/gm;
-
 /** Patterns that indicate a code block is executable */
 const EXECUTABLE_PATTERNS = [
   /\bfunction\b/,
@@ -30,7 +27,7 @@ const EXECUTABLE_PATTERNS = [
   /\bfunc\b/,
   /\bprint[ln]?\b/,
   /\breturn\b/,
-  /^[\$#]\s/m,           // Shell commands
+  /^[$#]\s/m, // Shell commands
   /\bnpm\b|\byarn\b|\bpnpm\b/,
   /\bcurl\b/,
 ];
@@ -45,7 +42,7 @@ function isCodeBlockExecutable(code: string, language: string): boolean {
   }
 
   // Check for executable patterns in the code
-  return EXECUTABLE_PATTERNS.some(pattern => pattern.test(code));
+  return EXECUTABLE_PATTERNS.some((pattern) => pattern.test(code));
 }
 
 /**
@@ -170,7 +167,9 @@ export async function parseMarkdownFiles(filePaths: string[]): Promise<DocSectio
     }
   }
 
-  logger.info(`Extracted ${allSections.length} documentation sections from ${filePaths.length} files`);
+  logger.info(
+    `Extracted ${allSections.length} documentation sections from ${filePaths.length} files`,
+  );
   return allSections;
 }
 
@@ -178,9 +177,7 @@ export async function parseMarkdownFiles(filePaths: string[]): Promise<DocSectio
  * Extract all executable code blocks from parsed sections.
  */
 export function getExecutableBlocks(sections: DocSection[]): DocCodeBlock[] {
-  return sections
-    .flatMap(s => s.codeBlocks)
-    .filter(block => block.isExecutable);
+  return sections.flatMap((s) => s.codeBlocks).filter((block) => block.isExecutable);
 }
 
 export default parseMarkdownFiles;

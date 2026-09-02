@@ -14,7 +14,7 @@ describe('Markdown Parser', () => {
 
     expect(sections.length).toBeGreaterThanOrEqual(4);
 
-    const titles = sections.map(s => s.title);
+    const titles = sections.map((s) => s.title);
     expect(titles).toContain('Sample Project');
     expect(titles).toContain('Installation');
     expect(titles).toContain('Usage');
@@ -23,7 +23,7 @@ describe('Markdown Parser', () => {
   it('should extract fenced code blocks', async () => {
     const sections = await parseMarkdownFile(FIXTURE_PATH);
 
-    const installSection = sections.find(s => s.title === 'Installation');
+    const installSection = sections.find((s) => s.title === 'Installation');
     expect(installSection).toBeDefined();
     expect(installSection!.codeBlocks.length).toBe(1);
     expect(installSection!.codeBlocks[0].language).toBe('bash');
@@ -41,20 +41,20 @@ describe('Markdown Parser', () => {
   it('should detect correct heading levels', async () => {
     const sections = await parseMarkdownFile(FIXTURE_PATH);
 
-    const h1 = sections.find(s => s.title === 'Sample Project');
+    const h1 = sections.find((s) => s.title === 'Sample Project');
     expect(h1).toBeDefined();
     expect(h1!.level).toBe(1);
 
-    const h2 = sections.find(s => s.title === 'Installation');
+    const h2 = sections.find((s) => s.title === 'Installation');
     expect(h2).toBeDefined();
     expect(h2!.level).toBe(2);
   });
 
   it('should detect code block languages', async () => {
     const sections = await parseMarkdownFile(FIXTURE_PATH);
-    const allBlocks = sections.flatMap(s => s.codeBlocks);
+    const allBlocks = sections.flatMap((s) => s.codeBlocks);
 
-    const languages = allBlocks.map(b => b.language);
+    const languages = allBlocks.map((b) => b.language);
     expect(languages).toContain('bash');
     expect(languages).toContain('javascript');
     expect(languages).toContain('json');

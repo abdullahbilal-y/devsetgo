@@ -2,11 +2,12 @@
  * devsetgo — Diagram Generator Tests
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateDiagrams } from '../../src/assets/diagram-generator.js';
 import type { DevSetGoConfig, ProjectManifest } from '../../src/parser/types.js';
-import { resolve } from 'node:path';
-import { existsSync, rmSync } from 'node:fs';
+import { resolve, join } from 'node:path';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 
 const testConfig: DevSetGoConfig = {
   project: {
@@ -85,17 +86,21 @@ const testManifest: ProjectManifest = {
   ],
 };
 
-const TMP_DIR = resolve(import.meta.dirname, '../../.devsetgo-test-diagrams');
+// Generated files go to a throwaway directory so a failed run can
+// never leave artifacts in the working tree.
+let workDir: string;
 
 describe('Diagram Generator', () => {
-  afterAll(() => {
-    if (existsSync(TMP_DIR)) {
-      rmSync(TMP_DIR, { recursive: true, force: true });
-    }
+  beforeAll(async () => {
+    workDir = await mkdtemp(join(tmpdir(), 'devsetgo-diagrams-'));
+  });
+
+  afterAll(async () => {
+    await rm(workDir, { recursive: true, force: true });
   });
 
   it('should generate mermaid files for modules', async () => {
-    const files = await generateDiagrams(resolve(import.meta.dirname, '../..'), testManifest, testConfig);
+    const files = await generateDiagrams(workDir, testManifest, testConfig);
 
     const mermaidFiles = files.filter(f => f.type === 'mermaid');
     expect(mermaidFiles.length).toBeGreaterThanOrEqual(1);
@@ -105,14 +110,14 @@ describe('Diagram Generator', () => {
   });
 
   it('should generate API flow diagram when endpoints exist', async () => {
-    const files = await generateDiagrams(resolve(import.meta.dirname, '../..'), testManifest, testConfig);
+    const files = await generateDiagrams(workDir, testManifest, testConfig);
 
     const apiFlowFile = files.find(f => f.path.includes('api-flow'));
     expect(apiFlowFile).toBeDefined();
   });
 
   it('should generate dependency diagram when dependencies exist', async () => {
-    const files = await generateDiagrams(resolve(import.meta.dirname, '../..'), testManifest, testConfig);
+    const files = await generateDiagrams(workDir, testManifest, testConfig);
 
     const depFile = files.find(f => f.path.includes('dependencies'));
     expect(depFile).toBeDefined();
@@ -120,12 +125,12 @@ describe('Diagram Generator', () => {
 
   it('should produce valid Mermaid syntax in generated files', async () => {
     const { readFileSync } = await import('node:fs');
-    const files = await generateDiagrams(resolve(import.meta.dirname, '../..'), testManifest, testConfig);
+    const files = await generateDiagrams(workDir, testManifest, testConfig);
 
     const architectureFile = files.find(f => f.path.includes('architecture') && f.type === 'mermaid');
     expect(architectureFile).toBeDefined();
 
-    const mermaidPath = resolve(import.meta.dirname, '../..', architectureFile!.path);
+    const mermaidPath = resolve(workDir, architectureFile!.path);
     const content = readFileSync(mermaidPath, 'utf-8');
 
     // Mermaid diagrams start with a graph type declaration
@@ -137,10 +142,10 @@ describe('Diagram Generator', () => {
 
   it('should include dependency arrows for internal deps', async () => {
     const { readFileSync } = await import('node:fs');
-    const files = await generateDiagrams(resolve(import.meta.dirname, '../..'), testManifest, testConfig);
+    const files = await generateDiagrams(workDir, testManifest, testConfig);
 
     const architectureFile = files.find(f => f.path.includes('architecture') && f.type === 'mermaid');
-    const mermaidPath = resolve(import.meta.dirname, '../..', architectureFile!.path);
+    const mermaidPath = resolve(workDir, architectureFile!.path);
     const content = readFileSync(mermaidPath, 'utf-8');
 
     // core --> utils dependency should be represented
@@ -148,7 +153,7 @@ describe('Diagram Generator', () => {
   });
 
   it('should return files with size > 0', async () => {
-    const files = await generateDiagrams(resolve(import.meta.dirname, '../..'), testManifest, testConfig);
+    const files = await generateDiagrams(workDir, testManifest, testConfig);
 
     for (const file of files) {
       expect(file.size).toBeGreaterThan(0);
@@ -163,7 +168,7 @@ describe('Diagram Generator', () => {
       dependencies: [],
     };
 
-    const files = await generateDiagrams(resolve(import.meta.dirname, '../..'), emptyManifest, testConfig);
+    const files = await generateDiagrams(workDir, emptyManifest, testConfig);
     expect(files.length).toBe(0);
   });
 });

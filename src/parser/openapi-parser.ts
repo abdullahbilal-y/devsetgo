@@ -131,7 +131,7 @@ export async function parseOpenAPIFile(filePath: string): Promise<APIEndpoint[]>
 function extractParameters(params?: OpenAPIParameter[]): APIParameter[] {
   if (!params) return [];
 
-  return params.map(p => ({
+  return params.map((p) => ({
     name: p.name,
     in: p.in as APIParameter['in'],
     required: p.required || false,
@@ -148,8 +148,8 @@ function extractRequestBody(body?: OpenAPIRequestBody): APIRequestBody | undefin
   if (!body?.content) return undefined;
 
   // Prefer JSON content type
-  const contentType = Object.keys(body.content).find(ct => ct.includes('json'))
-    || Object.keys(body.content)[0];
+  const contentType =
+    Object.keys(body.content).find((ct) => ct.includes('json')) || Object.keys(body.content)[0];
 
   if (!contentType) return undefined;
 
@@ -167,7 +167,9 @@ function extractRequestBody(body?: OpenAPIRequestBody): APIRequestBody | undefin
 /**
  * Extract response definitions.
  */
-function extractResponses(responses?: Record<string, OpenAPIResponse>): Record<string, APIResponse> {
+function extractResponses(
+  responses?: Record<string, OpenAPIResponse>,
+): Record<string, APIResponse> {
   if (!responses) return {};
 
   const result: Record<string, APIResponse> = {};
@@ -180,8 +182,8 @@ function extractResponses(responses?: Record<string, OpenAPIResponse>): Record<s
     let example: unknown;
 
     if (resp.content) {
-      contentType = Object.keys(resp.content).find(ct => ct.includes('json'))
-        || Object.keys(resp.content)[0];
+      contentType =
+        Object.keys(resp.content).find((ct) => ct.includes('json')) || Object.keys(resp.content)[0];
 
       if (contentType) {
         const content = resp.content[contentType];
