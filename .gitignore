@@ -1,4 +1,7 @@
 node_modules/
 dist/
+coverage/
 .devsetgo/
 *.tsbuildinfo
+*.bak
+.DS_Store

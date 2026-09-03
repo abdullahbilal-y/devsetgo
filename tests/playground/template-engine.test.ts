@@ -83,61 +83,127 @@ const testSnippets: CompiledSnippet[] = [
 describe('Template Engine', () => {
   describe('renderPlaygroundHTML', () => {
     it('should produce a valid HTML string', () => {
-      const html = renderPlaygroundHTML(testManifest, testConfig, testSnippets, PLAYGROUND_CSS, PLAYGROUND_JS);
+      const html = renderPlaygroundHTML(
+        testManifest,
+        testConfig,
+        testSnippets,
+        PLAYGROUND_CSS,
+        PLAYGROUND_JS,
+      );
       expect(html).toContain('<!DOCTYPE html>');
       expect(html).toContain('</html>');
     });
 
     it('should include the project name in the title', () => {
-      const html = renderPlaygroundHTML(testManifest, testConfig, testSnippets, PLAYGROUND_CSS, PLAYGROUND_JS);
+      const html = renderPlaygroundHTML(
+        testManifest,
+        testConfig,
+        testSnippets,
+        PLAYGROUND_CSS,
+        PLAYGROUND_JS,
+      );
       expect(html).toContain('test-tool');
     });
 
     it('should include the playground title', () => {
-      const html = renderPlaygroundHTML(testManifest, testConfig, testSnippets, PLAYGROUND_CSS, PLAYGROUND_JS);
+      const html = renderPlaygroundHTML(
+        testManifest,
+        testConfig,
+        testSnippets,
+        PLAYGROUND_CSS,
+        PLAYGROUND_JS,
+      );
       expect(html).toContain('Test Playground');
     });
 
     it('should include the snippet code in the editor', () => {
-      const html = renderPlaygroundHTML(testManifest, testConfig, testSnippets, PLAYGROUND_CSS, PLAYGROUND_JS);
+      const html = renderPlaygroundHTML(
+        testManifest,
+        testConfig,
+        testSnippets,
+        PLAYGROUND_CSS,
+        PLAYGROUND_JS,
+      );
       expect(html).toContain('console.log');
     });
 
     it('should include the CSS', () => {
-      const html = renderPlaygroundHTML(testManifest, testConfig, testSnippets, PLAYGROUND_CSS, PLAYGROUND_JS);
+      const html = renderPlaygroundHTML(
+        testManifest,
+        testConfig,
+        testSnippets,
+        PLAYGROUND_CSS,
+        PLAYGROUND_JS,
+      );
       expect(html).toContain('<style>');
       expect(html).toContain('--accent');
     });
 
     it('should include the JS runtime', () => {
-      const html = renderPlaygroundHTML(testManifest, testConfig, testSnippets, PLAYGROUND_CSS, PLAYGROUND_JS);
+      const html = renderPlaygroundHTML(
+        testManifest,
+        testConfig,
+        testSnippets,
+        PLAYGROUND_CSS,
+        PLAYGROUND_JS,
+      );
       expect(html).toContain('<script');
       expect(html).toContain('runCode');
     });
 
     it('should show API explorer tab when endpoints exist', () => {
-      const html = renderPlaygroundHTML(testManifest, testConfig, testSnippets, PLAYGROUND_CSS, PLAYGROUND_JS);
+      const html = renderPlaygroundHTML(
+        testManifest,
+        testConfig,
+        testSnippets,
+        PLAYGROUND_CSS,
+        PLAYGROUND_JS,
+      );
       expect(html).toContain('API Explorer');
     });
 
     it('should show code tab when snippets exist', () => {
-      const html = renderPlaygroundHTML(testManifest, testConfig, testSnippets, PLAYGROUND_CSS, PLAYGROUND_JS);
+      const html = renderPlaygroundHTML(
+        testManifest,
+        testConfig,
+        testSnippets,
+        PLAYGROUND_CSS,
+        PLAYGROUND_JS,
+      );
       expect(html).toContain('Code');
     });
 
     it('should embed snippet data as JSON', () => {
-      const html = renderPlaygroundHTML(testManifest, testConfig, testSnippets, PLAYGROUND_CSS, PLAYGROUND_JS);
+      const html = renderPlaygroundHTML(
+        testManifest,
+        testConfig,
+        testSnippets,
+        PLAYGROUND_CSS,
+        PLAYGROUND_JS,
+      );
       expect(html).toContain('snippets-data');
       expect(html).toContain('test_greet');
     });
 
     it('should use the configured theme', () => {
-      const html = renderPlaygroundHTML(testManifest, testConfig, testSnippets, PLAYGROUND_CSS, PLAYGROUND_JS);
+      const html = renderPlaygroundHTML(
+        testManifest,
+        testConfig,
+        testSnippets,
+        PLAYGROUND_CSS,
+        PLAYGROUND_JS,
+      );
       expect(html).toContain('data-theme="dark"');
     });
 
     it('should include the GitHub repo link', () => {
-      const html = renderPlaygroundHTML(testManifest, testConfig, testSnippets, PLAYGROUND_CSS, PLAYGROUND_JS);
+      const html = renderPlaygroundHTML(
+        testManifest,
+        testConfig,
+        testSnippets,
+        PLAYGROUND_CSS,
+        PLAYGROUND_JS,
+      );
       expect(html).toContain('github.com/test-org/test-tool');
     });
 

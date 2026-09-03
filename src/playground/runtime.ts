@@ -72,24 +72,86 @@ document.addEventListener('DOMContentLoaded', () => {
 let wasmReady = false;
 let quickJS = null;
 
+/** Wall-clock budget for a single snippet run, in milliseconds. */
+const EXECUTION_TIMEOUT_MS = 5000;
+
+/**
+ * QuickJS sources, tried in order.
+ *
+ * A single hardcoded CDN meant one provider outage took every published
+ * playground offline. Each entry is version-pinned so a CDN cannot silently
+ * serve a different build. window.__DEVSETGO_QUICKJS_SOURCES__ (set by the
+ * generated page from config) takes precedence when present.
+ */
+const QUICKJS_SOURCES =
+  (typeof window !== 'undefined' && window.__DEVSETGO_QUICKJS_SOURCES__) || [
+    'https://esm.sh/quickjs-emscripten@0.31.0',
+    'https://cdn.jsdelivr.net/npm/quickjs-emscripten@0.31.0/+esm',
+    'https://unpkg.com/quickjs-emscripten@0.31.0?module',
+  ];
+
 async function initWASMRuntime() {
-  try {
-    // Dynamically import QuickJS
-    const { getQuickJS } = await import('https://esm.sh/quickjs-emscripten@0.31.0');
-    quickJS = await getQuickJS();
-    wasmReady = true;
-    updateStatus('ready');
-  } catch (err) {
-    console.error('Failed to initialize WASM runtime:', err);
-    updateStatus('error');
+  updateStatus('loading');
+
+  const failures = [];
+
+  for (const source of QUICKJS_SOURCES) {
+    try {
+      const mod = await import(/* @vite-ignore */ source);
+      const getQuickJS = mod.getQuickJS || (mod.default && mod.default.getQuickJS);
+
+      if (typeof getQuickJS !== 'function') {
+        throw new Error('module did not export getQuickJS');
+      }
+
+      quickJS = await getQuickJS();
+      wasmReady = true;
+      updateStatus('ready');
+      return;
+    } catch (err) {
+      failures.push(source + ': ' + (err && err.message ? err.message : String(err)));
+      console.warn('[devsetgo] QuickJS source failed, trying next:', source, err);
+    }
+  }
+
+  console.error('[devsetgo] All QuickJS sources failed:', failures);
+  updateStatus('error');
+
+  // Say what went wrong in the pane the reader is already looking at, rather
+  // than silently leaving a dead Run button.
+  appendOutput(
+    'Could not load the JavaScript sandbox. All ' +
+      QUICKJS_SOURCES.length +
+      ' sources failed — this is usually a network, proxy, or offline issue.',
+    'error'
+  );
+  for (const failure of failures) {
+    appendOutput('  • ' + failure, 'error');
   }
 }
+
+const STATUS_LABELS = {
+  loading: 'Loading QuickJS WASM Runtime…',
+  ready: 'QuickJS WASM Runtime',
+  error: 'Runtime unavailable',
+};
 
 function updateStatus(status) {
   const dot = document.querySelector('.statusbar__dot');
   if (dot) {
     dot.className = 'statusbar__dot';
     if (status === 'ready') dot.classList.add('statusbar__dot--ready');
+    if (status === 'error') dot.classList.add('statusbar__dot--error');
+  }
+
+  const label = document.querySelector('.statusbar__runtime-label');
+  if (label && STATUS_LABELS[status]) {
+    label.textContent = STATUS_LABELS[status];
+  }
+
+  const runButton = document.getElementById('run-button');
+  if (runButton) {
+    runButton.disabled = status !== 'ready';
   }
 }
 
@@ -139,19 +201,33 @@ async function runCode() {
     logFn.dispose();
     consoleObj.dispose();
 
-    // Pre-process code for eval: strip export keywords
+    // Pre-process code for eval: strip export keywords. The backslashes are
+    // doubled because this source sits inside a template literal.
     let evalCodeStr = code
-      .replace(/^export\s+default\s+/gm, '')
-      .replace(/^export\s+/gm, '');
+      .replace(/^[ \\t]*export\\s+default\\s+/gm, '')
+      .replace(/^[ \\t]*export\\s+/gm, '');
 
-    // Auto-invoke top-level function if defined and not already invoked
-    const funcMatch = evalCodeStr.match(/function\\s+([a-zA-Z0-9_$]+)\\s*\\(/);
+    // Auto-invoke a top-level function that nothing calls, so that editing in
+    // a new definition still produces output. The existing-call check must be
+    // anchored at column zero: searching the whole source would treat a
+    // recursive call inside the body as an invocation and stay silent.
+    const funcMatch = evalCodeStr.match(/^(?:async\\s+)?function\\s+([A-Za-z_$][\\w$]*)\\s*\\(/m);
     if (funcMatch) {
       const fnName = funcMatch[1];
-      if (!evalCodeStr.includes(fnName + '()') && !evalCodeStr.includes(fnName + '(')) {
+      const withoutDecl = evalCodeStr.replace(
+        /^(?:async\\s+)?function\\s+[A-Za-z_$][\\w$]*\\s*\\(/gm,
+        ''
+      );
+      const called = new RegExp('^(?:await\\\\s+|void\\\\s+)?' + fnName + '\\\\s*\\\\(', 'm');
+      if (!called.test(withoutDecl)) {
         evalCodeStr += '\\n\\n' + fnName + '();';
       }
     }
+
+    // Stop runaway snippets instead of freezing the tab. QuickJS invokes this
+    // between operations; returning true aborts the run with an interrupt.
+    const deadline = Date.now() + EXECUTION_TIMEOUT_MS;
+    vm.runtime.setInterruptHandler(() => Date.now() > deadline);
 
     // Execute
     const result = vm.evalCode(evalCodeStr);

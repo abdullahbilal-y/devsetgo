@@ -16,13 +16,8 @@ const logger = createLogger('code-parser');
 const PLAYGROUND_ANNOTATION = /\/\*\*[\s\S]*?@playground(?:\s+(\{[\s\S]*?\}))?[\s\S]*?\*\//g;
 
 /** Regex to match export statements */
-const EXPORT_REGEX = /export\s+(?:default\s+)?(?:async\s+)?(?:function|class|const|let|var|interface|type|enum)\s+(\w+)/g;
-
-/** Regex to extract function signatures */
-const FUNCTION_REGEX = /(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\(([^)]*)\)/g;
-
-/** Regex for JSDoc comments */
-const JSDOC_REGEX = /\/\*\*([\s\S]*?)\*\/\s*(?:export\s+)?(?:async\s+)?(?:function|class|const|let|var)\s+(\w+)/g;
+const EXPORT_REGEX =
+  /export\s+(?:default\s+)?(?:async\s+)?(?:function|class|const|let|var|interface|type|enum)\s+(\w+)/g;
 
 /**
  * Language detection from file extension.
@@ -105,8 +100,8 @@ function extractDescription(jsdoc: string): string {
   return jsdoc
     .replace(/\/\*\*|\*\//g, '')
     .split('\n')
-    .map(line => line.replace(/^\s*\*\s?/, ''))
-    .filter(line => !line.startsWith('@'))
+    .map((line) => line.replace(/^\s*\*\s?/, ''))
+    .filter((line) => !line.startsWith('@'))
     .join(' ')
     .trim();
 }
@@ -194,7 +189,7 @@ export async function parseCodeFile(filePath: string): Promise<CodeSnippet[]> {
           if (nextIdx < lines.length) nextLine = lines[nextIdx];
 
           const exportMatch = nextLine.match(
-            /^export\s+(?:default\s+)?(?:async\s+)?(?:function|class|const)\s+(\w+)/
+            /^export\s+(?:default\s+)?(?:async\s+)?(?:function|class|const)\s+(\w+)/,
           );
 
           if (exportMatch) {

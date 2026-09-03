@@ -1,6 +1,6 @@
 {
   "name": "devsetgo",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "Interactive developer playground and documentation engine — converts source code, OpenAPI schemas, and Markdown into browser playgrounds and CRO-optimized docs.",
   "type": "module",
   "bin": {
@@ -8,19 +8,33 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
   "scripts": {
     "dev": "tsx src/cli.ts",
-    "build": "tsup",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm run typecheck && npm test && npm run build",
+    "build": "npm run clean && tsup",
+    "prepack": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "lint": "tsc --noEmit"
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run build",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "keywords": [
@@ -46,26 +60,34 @@
   "license": "MIT",
   "dependencies": {
     "@apidevtools/swagger-parser": "^10.1.0",
-    "@inquirer/prompts": "^7.5.0",
-    "@mermaid-js/mermaid-cli": "^11.4.0",
     "commander": "^13.1.0",
     "glob": "^11.0.0",
-    "gray-matter": "^4.0.3",
-    "handlebars": "^4.7.8",
-    "marked": "^15.0.0",
     "picocolors": "^1.1.0",
-    "quickjs-emscripten": "^0.31.0",
-    "sharp": "^0.33.0",
     "typescript": "^5.7.0",
     "yaml": "^2.7.0"
   },
+  "optionalDependencies": {
+    "sharp": "^0.35.4"
+  },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^3.1.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.0",
     "tsup": "^8.4.0",
     "tsx": "^4.19.0",
+    "typescript-eslint": "^8.19.0",
     "vitest": "^3.1.0"
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "overrides": {
+    "esbuild": "^0.28.2"
   }
 }

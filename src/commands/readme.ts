@@ -17,6 +17,7 @@ interface ReadmeOptions {
   format?: 'github' | 'gitlab';
   cta?: 'dual' | 'install-only' | 'enterprise-only';
   cro?: boolean;
+  force?: boolean;
 }
 
 export async function readmeCommand(cwd: string, options: ReadmeOptions): Promise<void> {
@@ -40,7 +41,7 @@ export async function readmeCommand(cwd: string, options: ReadmeOptions): Promis
 
   // Generate README
   log.info('Generating README...');
-  const result = await generateReadme(absRoot, manifest, config);
+  const result = await generateReadme(absRoot, manifest, config, { force: options.force });
 
   log.success(`README generated: ${result.outputPath}`);
   log.info(`Sections included: ${result.sections.join(', ')}`);

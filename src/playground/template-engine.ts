@@ -52,6 +52,16 @@ export function renderPlaygroundHTML(
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <style>${css}</style>
+
+  <!-- Runtime sources, emitted from config so a deployment can point at
+       an internal mirror without rebuilding the client script. -->
+  <script>
+    window.__DEVSETGO_QUICKJS_SOURCES__ = ${JSON.stringify(
+      config.playground.quickjs_sources && config.playground.quickjs_sources.length > 0
+        ? config.playground.quickjs_sources
+        : null,
+    )};
+  </script>
 </head>
 <body>
 
@@ -85,8 +95,10 @@ export function renderPlaygroundHTML(
   <!-- Status Bar -->
   <footer class="statusbar">
     <span class="statusbar__item">
-      <span class="statusbar__dot statusbar__dot--ready"></span>
-      QuickJS WASM Runtime
+      <!-- Starts un-"ready": the runtime flips this once QuickJS actually
+           loads, so the bar cannot claim readiness while the CDN is failing. -->
+      <span class="statusbar__dot"></span>
+      <span class="statusbar__runtime-label">Loading QuickJS WASM Runtime…</span>
     </span>
     <span class="statusbar__item">${compiledSnippets.length} snippets</span>
     ${hasAPI ? `<span class="statusbar__item">${manifest.apiEndpoints.length} API endpoints</span>` : ''}
@@ -97,7 +109,7 @@ export function renderPlaygroundHTML(
 
   <!-- Snippet Data -->
   <script type="application/json" id="snippets-data">
-    ${JSON.stringify(compiledSnippets.map(s => ({ id: s.id, title: s.title, code: s.code, description: s.description })))}
+    ${JSON.stringify(compiledSnippets.map((s) => ({ id: s.id, title: s.title, code: s.code, description: s.description })))}
   </script>
 
   <!-- Runtime -->
@@ -137,7 +149,7 @@ function generateCodePanel(
             <button class="btn btn--small btn--ghost" onclick="resetCode()" title="Reset code">
               ↺ Reset
             </button>
-            <button class="btn btn--small btn--primary" onclick="runCode()" title="Run code (Ctrl+Enter)">
+            <button id="run-button" class="btn btn--small btn--primary" onclick="runCode()" title="Run code (Ctrl+Enter)" disabled>
               ▶ Run
             </button>
           </div>
@@ -173,14 +185,18 @@ function generateCodeSidebar(categories: Map<string, CompiledSnippet[]>): string
     html += `
     <div class="sidebar__group">
       <h4 class="sidebar__group-title">${escapeHtml(category)}</h4>
-      ${snippets.map((s, i) => `
+      ${snippets
+        .map(
+          (s, i) => `
         <button class="sidebar__item ${i === 0 ? 'sidebar__item--active' : ''}"
                 data-snippet-id="${escapeHtml(s.id)}"
                 onclick="loadSnippet('${escapeHtml(s.id)}')">
           <span class="sidebar__item-icon">⟩</span>
           <span class="sidebar__item-title">${escapeHtml(s.title)}</span>
         </button>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </div>`;
   }
 

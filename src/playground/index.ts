@@ -7,12 +7,17 @@
 
 import { resolve, join } from 'node:path';
 import { createLogger } from '../utils/logger.js';
-import { ensureDir, safeWriteFile, getFileSize } from '../utils/file-system.js';
+import { ensureDir, safeWriteFile } from '../utils/file-system.js';
 import { prepareSnippetsForExecution } from './wasm-compiler.js';
 import { renderPlaygroundHTML } from './template-engine.js';
 import { PLAYGROUND_CSS } from './styles.js';
 import { PLAYGROUND_JS } from './runtime.js';
-import type { ProjectManifest, DevSetGoConfig, PlaygroundResult, GeneratedFile } from '../parser/types.js';
+import type {
+  ProjectManifest,
+  DevSetGoConfig,
+  PlaygroundResult,
+  GeneratedFile,
+} from '../parser/types.js';
 
 const logger = createLogger('playground');
 

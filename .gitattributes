@@ -1,0 +1,9 @@
+# Prettier is configured with endOfLine: lf, and CI runs format:check on
+# Windows too. Without this, a CRLF checkout there fails the format gate.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

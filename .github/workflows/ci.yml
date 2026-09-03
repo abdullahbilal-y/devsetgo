@@ -6,21 +6,36 @@ on:
   pull_request:
     branches: [main]
 
+# A newer push to the same branch makes an in-flight run obsolete.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  test:
-    name: Test (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
+  verify:
+    name: Verify (Node ${{ matrix.node-version }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [22.x, 24.x]
+        # The floor matches the `engines.node` range; Windows is covered
+        # because path handling differs there and the CLI writes files.
+        node-version: [20.x, 22.x, 24.x]
+        os: [ubuntu-latest]
+        include:
+          - node-version: 22.x
+            os: windows-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
@@ -28,34 +43,43 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
       - name: Type-check
         run: npm run typecheck
 
-      - name: Run tests
-        run: npm test
+      - name: Test with coverage
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build
 
-  publish:
-    name: Publish to npm
-    needs: test
+      - name: Upload coverage
+        if: matrix.node-version == '22.x' && matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  package:
+    name: Verify published package contents
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    permissions:
-      contents: read
-      id-token: write
+    needs: verify
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22.x
           cache: npm
-          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: npm ci
@@ -63,69 +87,26 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Check if version changed
-      - name: Check if version changed
-        id: version_check
+      # Catches the classic packaging mistakes — a missing dist/, a stray
+      # source tree, or a tarball that ballooned — before they reach npm.
+      - name: Pack and inspect
         run: |
-          PUBLISHED=$(npm view devsetgo version 2>/dev/null || echo "0.0.0")
-          LOCAL=$(node -e "console.log(require('./package.json').version)")
-          echo "published=$PUBLISHED" >> $GITHUB_OUTPUT
-          echo "local=$LOCAL" >> $GITHUB_OUTPUT
-          if [ "$PUBLISHED" != "$LOCAL" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
+          # --ignore-scripts: the build already ran above, and prepack would
+          # write tsup output to stdout and corrupt the JSON.
+          npm pack --dry-run --json --ignore-scripts > pack.json
+          node --input-type=module -e "
+            import { readFileSync } from 'node:fs';
+            const [pkg] = JSON.parse(readFileSync('pack.json', 'utf8'));
+            const names = pkg.files.map((f) => f.path);
+            const required = ['dist/cli.js', 'dist/index.js', 'dist/index.d.ts', 'LICENSE'];
+            const missing = required.filter((f) => !names.includes(f));
+            if (missing.length) throw new Error('Missing from tarball: ' + missing.join(', '));
+            const leaked = names.filter((f) => f.startsWith('src/') || f.startsWith('tests/'));
+            if (leaked.length) throw new Error('Source leaked into tarball: ' + leaked.join(', '));
+            console.log('Tarball OK:', names.length, 'files,', (pkg.size / 1024).toFixed(1), 'KB');
+          "
 
-      - name: Publish to npm
-        if: steps.version_check.outputs.changed == 'true'
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  deploy-playground:
-    name: Deploy Live Playground
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.x
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build CLI
-        run: npm run build
-
-      - name: Generate Playground
-        run: node dist/cli.js build --skip-assets
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.devsetgo/playground'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Smoke-test the built CLI
+        run: |
+          node dist/cli.js --version
+          node dist/cli.js --help

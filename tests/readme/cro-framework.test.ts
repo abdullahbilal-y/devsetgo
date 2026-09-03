@@ -28,11 +28,7 @@ const testConfig: DevSetGoConfig = {
     format: 'github',
     hero: {
       tagline: 'The fastest way to do the thing.',
-      badges: [
-        { type: 'build', status: 'passing' },
-        { type: 'version' },
-        { type: 'license' },
-      ],
+      badges: [{ type: 'build', status: 'passing' }, { type: 'version' }, { type: 'license' }],
     },
     problem: 'Developers waste hours configuring tools manually.',
     solution: 'Our tool automates everything in one command.',

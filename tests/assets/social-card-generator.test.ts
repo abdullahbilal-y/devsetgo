@@ -2,11 +2,12 @@
  * devsetgo — Social Card Generator Tests
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { generateSocialCards } from '../../src/assets/social-card-generator.js';
 import type { DevSetGoConfig, ProjectManifest } from '../../src/parser/types.js';
-import { resolve } from 'node:path';
-import { existsSync, rmSync } from 'node:fs';
+import { resolve, join } from 'node:path';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 
 const testConfig: DevSetGoConfig = {
   project: {
@@ -84,25 +85,29 @@ const testManifest: ProjectManifest = {
   dependencies: [],
 };
 
-const TMP_DIR = resolve(import.meta.dirname, '../../.devsetgo-test-assets');
+// Generated files go to a throwaway directory so a failed run can
+// never leave artifacts in the working tree.
+let workDir: string;
 
 describe('Social Card Generator', () => {
   // Cleanup after all tests
-  afterAll(() => {
-    if (existsSync(TMP_DIR)) {
-      rmSync(TMP_DIR, { recursive: true, force: true });
-    }
+  beforeAll(async () => {
+    workDir = await mkdtemp(join(tmpdir(), 'devsetgo-cards-'));
+  });
+
+  afterAll(async () => {
+    await rm(workDir, { recursive: true, force: true });
   });
 
   it('should generate SVG files for configured sizes', async () => {
-    const files = await generateSocialCards(resolve(import.meta.dirname, '../..'), testManifest, testConfig);
+    const files = await generateSocialCards(workDir, testManifest, testConfig);
 
     const svgFiles = files.filter(f => f.type === 'svg');
     expect(svgFiles.length).toBe(2); // og + twitter
   });
 
   it('should return GeneratedFile objects with correct types', async () => {
-    const files = await generateSocialCards(resolve(import.meta.dirname, '../..'), testManifest, testConfig);
+    const files = await generateSocialCards(workDir, testManifest, testConfig);
 
     for (const file of files) {
       expect(file.path).toBeDefined();
@@ -113,33 +118,33 @@ describe('Social Card Generator', () => {
 
   it('should include the project name in generated SVG content', async () => {
     const { readFileSync } = await import('node:fs');
-    const files = await generateSocialCards(resolve(import.meta.dirname, '../..'), testManifest, testConfig);
+    const files = await generateSocialCards(workDir, testManifest, testConfig);
 
     const ogSvg = files.find(f => f.path.includes('og') && f.type === 'svg');
     expect(ogSvg).toBeDefined();
 
-    const svgPath = resolve(import.meta.dirname, '../..', ogSvg!.path);
+    const svgPath = resolve(workDir, ogSvg!.path);
     const content = readFileSync(svgPath, 'utf-8');
     expect(content).toContain('test-tool');
   });
 
   it('should include metrics in the SVG', async () => {
     const { readFileSync } = await import('node:fs');
-    const files = await generateSocialCards(resolve(import.meta.dirname, '../..'), testManifest, testConfig);
+    const files = await generateSocialCards(workDir, testManifest, testConfig);
 
     const ogSvg = files.find(f => f.path.includes('og') && f.type === 'svg');
-    const svgPath = resolve(import.meta.dirname, '../..', ogSvg!.path);
+    const svgPath = resolve(workDir, ogSvg!.path);
     const content = readFileSync(svgPath, 'utf-8');
     expect(content).toContain('10x'); // from metrics
   });
 
   it('should produce valid SVG markup', async () => {
     const { readFileSync } = await import('node:fs');
-    const files = await generateSocialCards(resolve(import.meta.dirname, '../..'), testManifest, testConfig);
+    const files = await generateSocialCards(workDir, testManifest, testConfig);
 
     const svgFiles = files.filter(f => f.type === 'svg');
     for (const file of svgFiles) {
-      const svgPath = resolve(import.meta.dirname, '../..', file.path);
+      const svgPath = resolve(workDir, file.path);
       const content = readFileSync(svgPath, 'utf-8');
       expect(content).toContain('<svg');
       expect(content).toContain('</svg>');

@@ -14,6 +14,10 @@ const logger = createLogger('assets');
 
 /**
  * Generate all visual assets (diagrams + social cards).
+ *
+ * Optional renderers (sharp for PNG, mermaid-cli for SVG) degrade to a warning
+ * inside the individual generators — always-present outputs (SVG cards, .mermaid
+ * sources) are mandatory, so a failure here propagates and fails the build.
  */
 export async function generateAssets(
   rootDir: string,
@@ -27,24 +31,14 @@ export async function generateAssets(
   let diagrams: AssetResult['diagrams'] = [];
   let socialCards: AssetResult['socialCards'] = [];
 
-  // Generate diagrams
   if (config.assets.diagrams.enabled) {
-    try {
-      diagrams = await generateDiagrams(absRoot, manifest, config);
-      logger.success(`Generated ${diagrams.length} diagram files`);
-    } catch (err) {
-      logger.error(`Diagram generation failed: ${err}`);
-    }
+    diagrams = await generateDiagrams(absRoot, manifest, config);
+    logger.success(`Generated ${diagrams.length} diagram files`);
   }
 
-  // Generate social cards
   if (config.assets.social_cards.enabled) {
-    try {
-      socialCards = await generateSocialCards(absRoot, manifest, config);
-      logger.success(`Generated ${socialCards.length} social card files`);
-    } catch (err) {
-      logger.error(`Social card generation failed: ${err}`);
-    }
+    socialCards = await generateSocialCards(absRoot, manifest, config);
+    logger.success(`Generated ${socialCards.length} social card files`);
   }
 
   return { diagrams, socialCards };
