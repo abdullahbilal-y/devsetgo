@@ -32,22 +32,24 @@ export function helloDevSetGo(): void {
 }
 
 /**
- * @playground {"title": "📊 Developer Conversion ROI Calculator", "category": "Interactive Demos", "runnable": true}
- * Calculate adoption funnel improvements when using interactive playgrounds vs static docs.
+ * @playground {"title": "📊 Adoption Funnel Model (edit the rates)", "category": "Interactive Demos", "runnable": true}
+ * A funnel model you can edit. The rates below are illustrative placeholders,
+ * not measurements — replace them with your own analytics to get a real number.
  */
 export function calculateConversionROI(monthlyVisitors = 5000): object {
   console.log(
     `📈 Analyzing DevTool Adoption Funnel for ${monthlyVisitors.toLocaleString()} visitors/month...\n`,
   );
 
-  // Standard static README conversion benchmarks
-  const staticCloneRate = 0.04; // 4% clone
-  const staticInstallSuccess = 0.4; // 40% successfully install & run
+  // ILLUSTRATIVE PLACEHOLDER RATES — not measured, not benchmarks.
+  // Swap in figures from your own analytics; the output is only as
+  // meaningful as the numbers you put in.
+  const staticCloneRate = 0.04;
+  const staticInstallSuccess = 0.4;
   const staticLeads = monthlyVisitors * staticCloneRate * staticInstallSuccess;
 
-  // devsetgo interactive playground conversion benchmarks
-  const playgroundTryRate = 0.35; // 35% try browser playground (zero friction)
-  const playgroundAdoptRate = 0.18; // 18% adopt after live testing
+  const playgroundTryRate = 0.35;
+  const playgroundAdoptRate = 0.18;
   const devsetgoLeads = monthlyVisitors * playgroundTryRate * playgroundAdoptRate;
 
   const upliftMultiplier = (devsetgoLeads / Math.max(1, staticLeads)).toFixed(1);
@@ -62,7 +64,7 @@ export function calculateConversionROI(monthlyVisitors = 5000): object {
       instantEvaluations: Math.round(monthlyVisitors * playgroundTryRate),
       convertedDevelopers: Math.round(devsetgoLeads),
     },
-    conversionBoost: `+${(((devsetgoLeads - staticLeads) / staticLeads) * 100).toFixed(0)}% (${upliftMultiplier}x more developer adoption)`,
+    modelledUplift: `+${(((devsetgoLeads - staticLeads) / staticLeads) * 100).toFixed(0)}% (${upliftMultiplier}x) — from the placeholder rates above, not observed data`,
   };
 
   console.log(report);

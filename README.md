@@ -36,9 +36,10 @@ devsetgo solves this by compiling your code into WebAssembly browser modules and
 
 <table>
 <tr>
-<td align="center"><h3>< 2s</h3><sub>Playground Load</sub></td>
-<td align="center"><h3>< 500ms</h3><sub>README Generation</sub></td>
-<td align="center"><h3>< 3s</h3><sub>Asset Generation</sub></td>
+<td align="center"><h3>169</h3><sub>Tests</sub></td>
+<td align="center"><h3>80%</h3><sub>Line Coverage</sub></td>
+<td align="center"><h3>6</h3><sub>Runtime Deps</sub></td>
+<td align="center"><h3>736 KB</h3><sub>Install Size</sub></td>
 </tr>
 </table>
 
@@ -126,9 +127,10 @@ Try devsetgo directly in your browser — no installation required:
 
 | Metric | Value |
 |--------|-------|
-| Playground Load | **< 2s** |
-| README Generation | **< 500ms** |
-| Asset Generation | **< 3s** |
+| Tests | **169** |
+| Line Coverage | **80%** |
+| Runtime Deps | **6** |
+| Install Size | **736 KB** |
 
 </div>
 
@@ -140,12 +142,6 @@ Try devsetgo directly in your browser — no installation required:
 
 ## 🚀 Get Started
 
-<table>
-<tr>
-<td align="center" width="50%">
-
-### 👩‍💻 Developer Quick Start
-
 
 **Get Started in 30 Seconds**
 
@@ -155,30 +151,6 @@ npm install -g devsetgo
 
 <sub>Works on macOS, Linux, and Windows. Requires Node.js 20+.</sub>
 
-
-</td>
-<td align="center" width="50%">
-
-### 🏢 Enterprise & Teams
-
-
-**Book Enterprise Demo**
-
-Custom documentation portals, DX audits, and DevRel growth strategies.
-
-<br/>
-
-<a href="https://calendly.com/devsetgo/discovery">
-  <img src="https://img.shields.io/badge/📅_Schedule_a_Call-7c3aed?style=for-the-badge&logoColor=white" alt="Schedule a Call" />
-</a>
-
-<br/>
-<sub>Custom integrations • SLA support • Dedicated onboarding</sub>
-
-
-</td>
-</tr>
-</table>
 
 </div>
 

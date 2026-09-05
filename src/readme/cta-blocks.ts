@@ -16,10 +16,14 @@ export function generateDualCTA(cta: CTAConfig): string {
   const enterpriseCTA = cta.enterprise.enabled ? generateEnterpriseCTA(cta.enterprise) : '';
 
   if (!cta.enterprise.enabled) {
+    // Single-column layout still needs the section heading — without it the
+    // install block renders as an unlabelled orphan between two other sections.
     return `
 ---
 
 <div align="center">
+
+## 🚀 Get Started
 
 ${installCTA}
 

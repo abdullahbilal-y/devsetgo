@@ -2,7 +2,7 @@ project:
   name: 'devsetgo'
   description: 'Interactive developer playground and documentation engine — converts source code, OpenAPI schemas, and Markdown into browser playgrounds and CRO-optimized docs.'
   repo: 'https://github.com/abdullahbilal-y/devsetgo'
-  version: '1.0.0'
+  version: '2.0.0'
 
 playground:
   theme: 'dark'
@@ -63,22 +63,24 @@ readme:
       description: 'Local preview with hot-reload'
       status: 'stable'
   metrics:
-    - label: 'Playground Load'
-      value: '< 2s'
-    - label: 'README Generation'
-      value: '< 500ms'
-    - label: 'Asset Generation'
-      value: '< 3s'
+    - label: 'Tests'
+      value: '169'
+    - label: 'Line Coverage'
+      value: '80%'
+    - label: 'Runtime Deps'
+      value: '6'
+    - label: 'Install Size'
+      value: '736 KB'
 
 cta:
   install:
     command: 'npm install -g devsetgo'
     label: 'Get Started in 30 Seconds'
   enterprise:
-    enabled: true
-    url: 'https://calendly.com/devsetgo/discovery'
-    label: 'Book Enterprise Demo'
-    description: 'Custom documentation portals, DX audits, and DevRel growth strategies.'
+    enabled: false
+    url: ''
+    label: ''
+    description: ''
 
 assets:
   output_dir: 'assets'
