@@ -1,7 +1,7 @@
 {
   "name": "devsetgo",
   "version": "2.0.0",
-  "description": "Interactive developer playground and documentation engine — converts source code, OpenAPI schemas, and Markdown into browser playgrounds and CRO-optimized docs.",
+  "description": "Generates a runnable browser playground and architecture diagrams from your annotated source code.",
   "type": "module",
   "bin": {
     "devsetgo": "dist/cli.js"

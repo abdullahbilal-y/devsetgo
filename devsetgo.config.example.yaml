@@ -24,9 +24,9 @@ playground:
   # Output directory for the generated playground static site
   output_dir: '.devsetgo/playground'
 
-# ── README Generator (CRO Framework) ─────────────────────────────────
+# ── README Generator ─────────────────────────────────────────────────
 readme:
-  # Enable conversion-optimized README generation
+  # Fill the full Markdown template (false = a short, plain README)
   cro_enabled: true
   # Output path for generated README
   output: 'README.md'

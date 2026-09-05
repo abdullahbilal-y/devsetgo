@@ -12,8 +12,24 @@ import type { CodeSnippet } from './types.js';
 
 const logger = createLogger('code-parser');
 
-/** Regex to match @playground JSDoc annotations */
-const PLAYGROUND_ANNOTATION = /\/\*\*[\s\S]*?@playground(?:\s+(\{[\s\S]*?\}))?[\s\S]*?\*\//g;
+/**
+ * Regex to match a `@playground` JSDoc annotation.
+ *
+ * Two details keep this from matching things it should not:
+ *
+ * 1. `(?:(?!\*\/)[\s\S])` is a "tempered" any-character — anything except the
+ *    start of a comment terminator. Without it, an unbounded `[\s\S]*?` lets a
+ *    match open at one comment's `/**`, run across intervening source, and
+ *    close at a later comment, splicing a snippet out of unrelated code.
+ *
+ * 2. The tag must sit at the start of a JSDoc line (after the leading `*`),
+ *    which is where a real annotation goes. Prose that merely mentions
+ *    `@playground` — such as this comment — is not an annotation, and treating
+ *    it as one published fragments of the parser's own source to the
+ *    playground.
+ */
+const PLAYGROUND_ANNOTATION =
+  /\/\*\*(?:(?!\*\/)[\s\S])*?(?:^|\n)[ \t]*\*[ \t]*@playground(?:[ \t]+(\{(?:(?!\*\/)[\s\S])*?\}))?(?:(?!\*\/)[\s\S])*?\*\//g;
 
 /** Regex to match export statements */
 const EXPORT_REGEX =
@@ -67,7 +83,7 @@ function parsePlaygroundAnnotation(annotationBody: string | undefined): {
 function extractAnnotatedBlock(
   content: string,
   annotationEnd: number,
-): { code: string; lineRange: { start: number; end: number } } {
+): { code: string; lineRange: { start: number; end: number } } | null {
   const afterAnnotation = content.slice(annotationEnd);
 
   // Find the start of the next function/class/const definition
@@ -76,14 +92,10 @@ function extractAnnotatedBlock(
   );
 
   if (!defMatch) {
-    // Fallback: take the next ~20 lines
-    const lines = afterAnnotation.split('\n').slice(0, 20);
-    const code = lines.join('\n').trim();
-    const startLine = content.slice(0, annotationEnd).split('\n').length;
-    return {
-      code,
-      lineRange: { start: startLine, end: startLine + lines.length },
-    };
+    // No declaration follows, so there is nothing to show. Returning the next
+    // 20 lines regardless used to slice arbitrary source — imports, or the
+    // middle of an expression — and publish it as a runnable example.
+    return null;
   }
 
   const code = defMatch[1].trim();
@@ -131,7 +143,11 @@ export async function parseCodeFile(filePath: string): Promise<CodeSnippet[]> {
 
     const metadata = parsePlaygroundAnnotation(match[1]);
     const annotationEnd = match.index + match[0].length;
-    const { code, lineRange } = extractAnnotatedBlock(content, annotationEnd);
+    const block = extractAnnotatedBlock(content, annotationEnd);
+
+    if (!block) continue;
+
+    const { code, lineRange } = block;
 
     // If code is empty or just internal regex, skip
     if (!code || code.startsWith('const PLAYGROUND_ANNOTATION') || code.length < 5) {

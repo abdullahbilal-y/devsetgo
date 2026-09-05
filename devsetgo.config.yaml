@@ -1,6 +1,6 @@
 project:
   name: 'devsetgo'
-  description: 'Interactive developer playground and documentation engine — converts source code, OpenAPI schemas, and Markdown into browser playgrounds and CRO-optimized docs.'
+  description: 'Generates a runnable browser playground and architecture diagrams from your annotated source code.'
   repo: 'https://github.com/abdullahbilal-y/devsetgo'
   version: '2.0.0'
 
@@ -14,10 +14,10 @@ playground:
 
 readme:
   cro_enabled: true
-  output: 'README.md'
+  output: 'docs/example-generated-readme.md'
   format: 'github'
   hero:
-    tagline: 'Convert source code into interactive browser playgrounds and CRO-optimized docs — in one command.'
+    tagline: 'Turn annotated source code into a runnable browser playground and architecture diagrams.'
     badges:
       - type: 'build'
         status: 'passing'
@@ -25,42 +25,41 @@ readme:
       - type: 'license'
       - type: 'downloads'
   problem: |
-    Developer tool vendors and B2B software companies frequently struggle to convert GitHub repository visits into technical adoption:
-    - README walls of text with no interactive execution or visual architecture maps
-    - High onboarding friction requiring clone, install, and local build before evaluating anything
-    - Zero conversion optimization — repos lack structured frameworks to turn visits into enterprise inquiries
+    Two parts of a project's documentation go stale the moment anyone merges a pull request:
+    - Architecture diagrams drawn by hand, which quietly stop matching the real module structure
+    - Code examples pasted into Markdown, which nobody re-runs and which drift from the working code
   solution: |
-    devsetgo solves this by compiling your code into WebAssembly browser modules and generating CRO-optimized documentation — all from a single CLI command.
+    devsetgo reads your source files directly, so both stay correct. It draws the architecture diagram from the imports it actually finds, and turns functions you tag with a comment into examples a reader can edit and run in the browser.
   quick_start:
     install_command: 'npm install -g devsetgo'
     first_run: 'devsetgo init'
   features:
     - name: 'Code Parser'
-      description: 'Extracts executable snippets via @playground annotations'
+      description: 'Finds functions you tagged with a @playground comment'
       status: 'stable'
     - name: 'OpenAPI Parser'
-      description: 'Parses 3.x schemas into interactive API explorers'
+      description: 'Reads an OpenAPI file and builds a request tester'
       status: 'stable'
     - name: 'Markdown Parser'
-      description: 'Splits docs into sections, detects executable code blocks'
+      description: 'Splits Markdown into sections and finds code blocks'
       status: 'stable'
     - name: 'WASM Playground'
-      description: 'Browser-side JS execution via QuickJS WebAssembly'
+      description: 'Runs your examples in the browser, sandboxed'
       status: 'stable'
     - name: 'API Explorer'
-      description: 'Interactive request builder with auth and cURL export'
+      description: 'Send real API requests and copy them as cURL'
       status: 'stable'
-    - name: 'CRO README'
-      description: '10-section conversion-optimized README generation'
+    - name: 'README Generator'
+      description: 'Fills a Markdown template from your config file'
       status: 'stable'
     - name: 'Architecture Diagrams'
-      description: 'Auto-generated Mermaid diagrams from code structure'
+      description: 'Mermaid diagrams drawn from your real imports'
       status: 'stable'
     - name: 'Social Cards'
-      description: 'Dark-mode OG/Twitter/GitHub cards with SVG/PNG output'
+      description: 'Link preview images for social media'
       status: 'stable'
     - name: 'Dev Server'
-      description: 'Local preview with hot-reload'
+      description: 'Local server that reloads when you rebuild'
       status: 'stable'
   metrics:
     - label: 'Tests'
@@ -75,7 +74,7 @@ readme:
 cta:
   install:
     command: 'npm install -g devsetgo'
-    label: 'Get Started in 30 Seconds'
+    label: 'Install'
   enterprise:
     enabled: false
     url: ''

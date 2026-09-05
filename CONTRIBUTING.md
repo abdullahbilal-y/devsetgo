@@ -1,6 +1,7 @@
 # Contributing to devsetgo
 
-Thank you for your interest in contributing to **devsetgo**! 🎉
+Thanks for taking a look. This page covers how to set the project up, what
+the checks do, and how a release happens.
 
 ## Getting Started
 
@@ -43,21 +44,26 @@ npm run dev -- build
 
 ```
 src/
-├── cli.ts              # CLI entry point (Commander)
-├── index.ts            # Public API exports
-├── commands/           # CLI subcommands
-├── parser/             # Source parsers (code, OpenAPI, Markdown)
-├── readme/             # CRO README generator
-├── playground/         # WASM playground builder
-├── assets/             # Diagram & social card generators
-└── utils/              # Shared utilities (config, logger, fs)
+├── cli.ts              Entry point. Defines every command and its flags.
+├── index.ts            What the package exports when used as a library.
+├── commands/           One file per command (build, serve, init, ...).
+├── parser/             Reads your project: code, OpenAPI files, Markdown.
+├── playground/         Builds the web page and the browser runtime.
+├── readme/             Fills the Markdown template.
+├── assets/             Draws diagrams and social preview images.
+└── utils/              Config loading, file helpers, logging.
 
 tests/
-├── parser/             # Parser unit tests
-├── readme/             # README generator tests
-├── playground/         # Playground tests
-└── fixtures/           # Test data files
+├── cli.e2e.test.ts     Runs the real command, checks the exit code.
+├── pipeline.test.ts    Parsing through to generation.
+├── commands/           Per-command tests, including a live HTTP server.
+├── parser/             Parser tests.
+├── playground/         Playground and browser-runtime tests.
+├── readme/             README generator tests.
+└── fixtures/           Sample files the tests read.
 ```
+
+For how the pieces fit together, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Submitting Changes
 
@@ -85,8 +91,18 @@ tests/
    npm run build       # Verify build succeeds
    ```
 
-   Coverage thresholds are a ratchet: raise them as suites grow, and never
-   lower one to turn a red run green.
+   What each check is for:
+
+   | Check           | Why it exists                               |
+   | --------------- | ------------------------------------------- |
+   | `format:check`  | Keeps formatting out of code review.        |
+   | `lint`          | Catches unused code and unhandled promises. |
+   | `typecheck`     | Confirms the types are sound.               |
+   | `test:coverage` | Runs the tests and fails if coverage drops. |
+   | `build`         | Confirms the package still compiles.        |
+
+   Coverage thresholds are a ratchet: raise them as the test suite grows, and
+   never lower one to turn a red run green.
 
 4. **Commit** with a conventional commit message:
 

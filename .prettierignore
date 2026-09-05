@@ -10,3 +10,4 @@ tests/fixtures/
 # regeneration. CHANGELOG.md is hand-authored but hand-wrapped.
 README.md
 CHANGELOG.md
+docs/example-generated-readme.md
